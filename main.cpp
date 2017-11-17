@@ -1,6 +1,7 @@
 #include <iostream>
 #include <asio.hpp>
 
+typedef tcp::resolver::iterator resolver_iterator;
 using asio::ip::tcp;
 
 int main(int argc, char* argv[])
@@ -20,7 +21,7 @@ int main(int argc, char* argv[])
         tcp::resolver::query query(tcp::v4(), argv[1], "5025");
         tcp::resolver::iterator iterator = resolver.resolve(query);
 
-        tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
+        resolver_iterator
 
         // Try each endpoint until we successfully establish a connection.
         tcp::socket socket(io_service);
