@@ -29,4 +29,4 @@ set(CMAKE_CXX_STANDARD 17)
 set(SOURCE_FILES main.cpp)
 add_executable(lmgd ${SOURCE_FILES})
 
-target_link_libraries(lmgd asio Nitro::Log)
+target_link_libraries(lmgd PRIVATE asio Nitro::Log Nitro::Jiffy)
