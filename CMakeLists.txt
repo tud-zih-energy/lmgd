@@ -24,9 +24,10 @@ endif()
 
 add_subdirectory(lib)
 
-set(CMAKE_CXX_STANDARD 17)
+set(SOURCE_FILES src/main.cpp
+                 src/socket.cpp)
 
-set(SOURCE_FILES main.cpp)
 add_executable(lmgd ${SOURCE_FILES})
-
+target_compile_features(lmgd PUBLIC cxx_std_17)
 target_link_libraries(lmgd PRIVATE asio Nitro::Log Nitro::Jiffy)
+target_include_directories(lmgd PUBLIC include)
