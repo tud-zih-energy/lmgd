@@ -1,11 +1,13 @@
 #pragma once
 
+#include <lmgd/log.hpp>
+
+#include <asio/io_service.hpp>
+#include <asio/ip/tcp.hpp>
+#include <asio/streambuf.hpp>
+
 #include <string>
 #include <vector>
-
-#include <asio.hpp>
-
-using asio::ip::tcp;
 
 namespace lmgd
 {
@@ -15,6 +17,7 @@ namespace network
     {
 
     public:
+        Socket() = default;
         Socket(const std::string& hostname, int port);
 
         template <typename T>
@@ -50,19 +53,28 @@ namespace network
             data = std::string(tmp.begin(), tmp.end());
         }
 
+        std::string read_line(char delim = '\n');
+
         void read(char* data, std::size_t bytes);
 
         void write(const char* data, std::size_t bytes);
 
+        void open(const std::string& host, int port);
+
         // After calling this function calls to read or write are not allowed anymore
         void close();
+
+        bool is_open() const;
 
         Socket(Socket&) = delete;
         void operator=(Socket&) = delete;
 
+        ~Socket();
+
     private:
-        asio::io_service io_service;
-        tcp::socket s;
+        asio::io_service io_service_;
+        asio::ip::tcp::socket socket_;
+        asio::streambuf recv_buffer_;
     };
 
     template <typename T>
@@ -92,7 +104,7 @@ namespace network
     template <>
     inline Socket& operator<<(Socket& s, const std::string& v)
     {
-        s.write(v.c_str(), v.size() + 1);
+        s.write(v.data(), v.size() + 1);
 
         return s;
     }

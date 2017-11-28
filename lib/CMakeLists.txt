@@ -1,6 +1,6 @@
 
 add_library(asio INTERFACE)
-target_include_directories(asio INTERFACE asio/asio/include)
+target_include_directories(asio SYSTEM INTERFACE asio/asio/include)
 
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
