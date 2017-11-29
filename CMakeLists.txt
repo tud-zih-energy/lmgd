@@ -31,3 +31,11 @@ add_executable(lmgd ${SOURCE_FILES})
 target_compile_features(lmgd PUBLIC cxx_std_17)
 target_link_libraries(lmgd PRIVATE asio Nitro::Log Nitro::Jiffy)
 target_include_directories(lmgd PUBLIC include)
+
+add_library(lmg_plugin SHARED src/module.cpp)
+target_compile_features(lmg_plugin PUBLIC cxx_std_17)
+target_link_libraries(lmg_plugin PRIVATE ScorepPluginCXX asio Nitro::Log Nitro::Jiffy)
+target_include_directories(lmg_plugin PUBLIC
+    include
+    /opt/scorep/2016-09-07_metric/include 
+)
