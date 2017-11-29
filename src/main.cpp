@@ -2,6 +2,8 @@
 #include <lmgd/network/connection.hpp>
 #include <lmgd/parser/list.hpp>
 
+#include <nitro/lang/enumerate.hpp>
+
 #include <iostream>
 #include <stdexcept>
 
@@ -28,6 +30,8 @@ int main(int argc, char* argv[])
     lmgd::Log::info() << "HELO!";
 
     std::string hostname = "localhost";
+    if (argc > 1)
+        hostname = argv[1];
 
     try
     {
@@ -40,12 +44,12 @@ int main(int argc, char* argv[])
 
         socket.send_command("GROUP 6");
 
-        socket.send_command("GLCTRAC 0, \"P1111\"\n");
-        socket.send_command("GLCTRAC 1, \"P1211\"\n");
-        socket.send_command("GLCTRAC 2, \"P1311\"\n");
-        socket.send_command("GLCTRAC 3, \"P1411\"\n");
-        socket.send_command("GLCTRAC 4, \"P1511\"\n");
-        socket.send_command("GLCTRAC 5, \"P1611\"\n");
+        socket.send_command("GLCTRAC 0, \"P1111\"");
+        socket.send_command("GLCTRAC 1, \"P1211\"");
+        socket.send_command("GLCTRAC 2, \"P1311\"");
+        socket.send_command("GLCTRAC 3, \"P1411\"");
+        socket.send_command("GLCTRAC 4, \"P1511\"");
+        socket.send_command("GLCTRAC 5, \"P1611\"");
 
         socket.send_command("GLCSR 500000000");
 
@@ -62,7 +66,7 @@ int main(int argc, char* argv[])
         auto gap_length = std::stoi(socket.read_ascii());
         Log::info() << "Gap length: " << gap_length;
 
-        socket.send_command("ACTN; TSNORM?; GLPVAL? 0, (0:" + std::to_string(gap_length - 1) +
+        socket.send_command("ACTN; TSSP?; GLPVAL? 0, (0:" + std::to_string(gap_length - 1) +
                             "); GLPVAL? 1, (0:" + std::to_string(gap_length - 1) +
                             "); GLPVAL? 2, (0:" + std::to_string(gap_length - 1) + ")");
 
@@ -78,13 +82,24 @@ int main(int argc, char* argv[])
         {
             auto dataline = socket.read_binary();
 
-            auto timestamp = lmgd::parser::parse<std::int64_t>(&dataline[0]);
+            auto timestamp = dataline.read_time();
 
             Log::info() << "Timestamp: " << timestamp;
 
-            auto data = lmgd::parser::parse_list<float>(&dataline[8]);
-
-            Log::info() << "Data: " << data.size();
+            for (int i = 0; i < 3; i++)
+            {
+                auto list = dataline.read_float_list();
+                Log::info() << "Track " << i << ": " << list.size() << " values:";
+                for (auto value : nitro::lang::enumerate(list))
+                {
+                    if (value.index() > 10)
+                        break;
+                    std::cout << value.value() << ", ";
+                }
+                std::cout << std::endl;
+            }
+            Log::info() << "DataBuffer position: " << dataline.position() << " / "
+                        << dataline.size();
         }
 
         socket.send_command("CONT OFF");

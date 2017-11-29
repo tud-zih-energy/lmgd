@@ -2,6 +2,7 @@
 
 #include <lmgd/network/socket.hpp>
 
+#include <lmgd/data.hpp>
 #include <lmgd/log.hpp>
 
 #include <cassert>
@@ -95,7 +96,41 @@ namespace network
         }
 
     public:
-        std::vector<char> read_binary()
+        BinaryData read_binary(size_t reserved_size = 0)
+        {
+            assert(mode_ == Mode::binary);
+
+            char prefix;
+            *socket_ >> prefix;
+
+            BinaryData data(reserved_size);
+            while (prefix == '#')
+            {
+                char size_size_buffer;
+                *socket_ >> size_size_buffer;
+
+                std::size_t size_size = size_size_buffer - '0';
+
+                auto size_buffer = std::string(size_size, '$');
+
+                socket_->read(size_buffer.data(), size_size);
+
+                auto size = std::stoull(size_buffer);
+                Log::trace() << "Reading binary chunk of size: " << size;
+
+                // TODO use byte* everywhere ...
+                socket_->read((char*)data.append(size), size);
+
+                *socket_ >> prefix;
+            }
+
+            assert(prefix == '\n');
+            Log::trace() << "Returning total buffer size: " << data.size();
+
+            return data;
+        }
+
+        std::vector<char> read_binary_raw()
         {
             assert(mode_ == Mode::binary);
 
