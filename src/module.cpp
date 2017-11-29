@@ -80,7 +80,11 @@ public:
 
         connection_ =
             std::make_unique<lmgd::network::Connection>(scorep::environment_variable::get("HOST"));
-        connection_->send_command("GROUP 7");
+
+        connection_->send_command("ERRALL?");
+        logging::info() << "errors before: " << connection_->read_ascii();
+
+        connection_->send_command("GROUP 6");
         for (const auto& track : nitro::lang::enumerate(tracks_))
         {
             connection_->send_command("GLCTRAC " + std::to_string(track.index()) + ", \"" +
@@ -109,6 +113,8 @@ public:
 
         logging::debug() << "Using action: " << action;
         connection_->send_command(action);
+
+        connection_->mode(lmgd::network::Connection::Mode::binary);
         connection_->send_command("CONT ON");
 
         thread_ = std::thread([this]() { this->run_thread(); });
@@ -132,6 +138,7 @@ public:
         track_data_.resize(tracks_.size());
         for (auto& data_line : data_)
         {
+            if (data_line.size() == 1) break; // XXX buffer with just '1' at the end... hmmm
             auto start_time_ns = data_line.read_time();
             for (const auto& track : nitro::lang::enumerate(tracks_))
             {
@@ -155,7 +162,7 @@ public:
                 // TODO Rounding?!
                 int64_t time_ns = start_time_ns + entry.index() * 1000000l / sampling_rate_;
                 local_clock::time_point tp{std::chrono::nanoseconds(time_ns)};
-                c.store(converter.to_ticks(tp), entry.value());
+                c.write(converter.to_ticks(tp), entry.value());
             }
         }
     }
