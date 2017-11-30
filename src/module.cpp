@@ -160,7 +160,7 @@ public:
             for (auto entry : nitro::lang::enumerate(time_list.second))
             {
                 // TODO Rounding?!
-                int64_t time_ns = start_time_ns + entry.index() * 1000000l / sampling_rate_;
+                int64_t time_ns = start_time_ns + int64_t(entry.index() * 1000000000l / sampling_rate_);
                 local_clock::time_point tp{std::chrono::nanoseconds(time_ns)};
                 c.write(converter.to_ticks(tp), entry.value());
             }
@@ -178,7 +178,7 @@ private:
 
     std::vector<std::string> tracks_;
     int64_t gap_length_;
-    float sampling_rate_;
+    double sampling_rate_;
     std::unique_ptr<lmgd::network::Connection> connection_;
     std::atomic<bool> keep_running_ = true;
     std::thread thread_;
