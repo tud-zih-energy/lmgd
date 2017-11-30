@@ -30,7 +30,7 @@ namespace detail
                 s << r.tag() << "[";
             }
 
-            s << r.severity() << "]: " << r.message();
+            s << r.severity() << "]: " << r.message() << '\n';
 
             return s.str();
         }
