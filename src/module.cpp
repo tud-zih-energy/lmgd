@@ -18,46 +18,7 @@ using namespace scorep::plugin::policy;
 using scorep::plugin::logging;
 
 // Must be system clock for real epoch!
-
-// XXX move to CXX wrapper, seems to be useful
 using local_clock = std::chrono::system_clock;
-template <typename TP>
-class scorep_time_converter
-{
-    using local_duration_t = typename TP::duration;
-
-public:
-    scorep_time_converter(TP local_start, TP local_stop, scorep::chrono::ticks scorep_start,
-                          scorep::chrono::ticks scorep_stop)
-    : local_start_(local_start), scorep_start_(scorep_start)
-    {
-        const auto local_duration = local_stop - local_start;
-        const auto scorep_duration = scorep_stop - scorep_start;
-        tick_rate_ = static_cast<double>(scorep_duration.count()) / local_duration.count();
-    }
-
-    template <typename T>
-    scorep::chrono::ticks to_ticks(const T duration) const
-    {
-        return to_ticks(std::chrono::duration_cast<local_duration_t>(duration));
-    }
-
-    scorep::chrono::ticks to_ticks(const local_duration_t duration) const
-    {
-        return scorep::chrono::ticks(duration.count() * tick_rate_);
-    }
-
-    scorep::chrono::ticks to_ticks(const TP tp) const
-    {
-        const auto tp_offset = tp - local_start_;
-        return scorep_start_ + to_ticks(tp_offset);
-    }
-
-private:
-    TP local_start_;
-    scorep::chrono::ticks scorep_start_;
-    double tick_rate_;
-};
 
 class lmg_plugin : public scorep::plugin::base<lmg_plugin, async, once, post_mortem, scorep_clock>
 {
@@ -75,8 +36,7 @@ public:
 
     void start()
     {
-        local_start_ = local_clock::now();
-        scorep_start_ = scorep::chrono::measurement_clock::now();
+        convert_.synchronize_point();
 
         connection_ =
             std::make_unique<lmgd::network::Connection>(scorep::environment_variable::get("HOST"));
@@ -122,8 +82,7 @@ public:
 
     void stop()
     {
-        local_stop_ = local_clock::now();
-        scorep_stop_ = scorep::chrono::measurement_clock::now();
+        convert_.synchronize_point();
 
         // The thread doesn't write to the socket, so this is fine... right?
         connection_->send_command("CONT OFF");
@@ -138,7 +97,10 @@ public:
         track_data_.resize(tracks_.size());
         for (auto& data_line : data_)
         {
-            if (data_line.size() == 1) break; // XXX buffer with just '1' at the end... hmmm
+            if (data_line.size() == 1)
+            {
+                break; // XXX buffer with just '1' at the end... hmmm
+            }
             auto start_time_ns = data_line.read_time();
             for (const auto& track : nitro::lang::enumerate(tracks_))
             {
@@ -151,18 +113,16 @@ public:
     template <class Cursor>
     void get_all_values(std::int32_t id, Cursor& c)
     {
-        auto converter = scorep_time_converter<local_clock::time_point>(
-            local_start_, local_stop_, scorep_start_, scorep_stop_);
-
         for (auto& time_list : track_data_[id])
         {
             auto start_time_ns = time_list.first;
             for (auto entry : nitro::lang::enumerate(time_list.second))
             {
                 // TODO Rounding?!
-                int64_t time_ns = start_time_ns + int64_t(entry.index() * 1000000000l / sampling_rate_);
-                local_clock::time_point tp{std::chrono::nanoseconds(time_ns)};
-                c.write(converter.to_ticks(tp), entry.value());
+                int64_t time_ns =
+                    start_time_ns + int64_t(entry.index() * 1000000000l / sampling_rate_);
+                local_clock::time_point tp{ std::chrono::nanoseconds(time_ns) };
+                c.write(convert_.to_ticks(tp), entry.value());
             }
         }
     }
@@ -184,9 +144,7 @@ private:
     std::thread thread_;
     std::vector<lmgd::BinaryData> data_;
     std::vector<std::vector<std::pair<int64_t, lmgd::BinaryList<float>>>> track_data_;
-
-    scorep::chrono::ticks scorep_start_, scorep_stop_;
-    std::chrono::time_point<local_clock> local_start_, local_stop_;
+    scorep::chrono::time_convert<local_clock> convert_;
 };
 
 SCOREP_METRIC_PLUGIN_CLASS(lmg_plugin, "lmg")

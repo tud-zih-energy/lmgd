@@ -10,11 +10,11 @@ namespace lmgd
 
 using Buffer = std::vector<std::byte>;
 
-template<typename T>
+template <typename T>
 class BinaryList
 {
 public:
-    BinaryList(std::shared_ptr<Buffer> buffer, std::byte* begin, size_t size)
+    BinaryList(const std::shared_ptr<Buffer>& buffer, std::byte* begin, size_t size)
     : buffer_(buffer), begin_(reinterpret_cast<T*>(begin)), size_(size)
     {
     }
