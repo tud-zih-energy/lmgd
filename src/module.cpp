@@ -65,6 +65,7 @@ public:
         logging::info() << "errors: " << connection_->read_ascii();
 
         std::string action = "ACTN; TSSP?";
+//        std::string action = "ACTN; TSEN?; SPTPOS?";
         for (const auto& track : nitro::lang::enumerate(tracks_))
         {
             action += "; GLPVAL? " + std::to_string(track.index()) +
@@ -94,6 +95,7 @@ public:
             logging::error() << "No lmg readings available.";
             return;
         }
+        logging::debug() << "converting total of " << data_.size() << " lines";
         track_data_.resize(tracks_.size());
         for (auto& data_line : data_)
         {
@@ -102,6 +104,9 @@ public:
                 break; // XXX buffer with just '1' at the end... hmmm
             }
             auto start_time_ns = data_line.read_time();
+            auto num_samples = data_line.read_int();
+            logging::debug() << "start time ns " << start_time_ns;
+            logging::debug() << "num_samples " << num_samples;
             for (const auto& track : nitro::lang::enumerate(tracks_))
             {
                 auto list = data_line.read_float_list();
@@ -132,6 +137,7 @@ private:
     {
         while (keep_running_)
         {
+            logging::debug() << "reading binary line";
             data_.push_back(connection_->read_binary());
         }
     }
