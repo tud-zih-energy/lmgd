@@ -1,0 +1,12 @@
+{
+    "name": "LMG670",
+    "num_channels": 6,
+    "channels": [
+        "ariel.s0",
+        "ariel.dram0",
+        "ariel.s1",
+        "ariel.dram1",
+        "ariel.board.12V",
+        "ariel.fan"
+    ]
+}

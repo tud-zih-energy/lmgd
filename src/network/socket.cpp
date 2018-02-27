@@ -1,5 +1,6 @@
 #include <lmgd/network/socket.hpp>
 
+#include <lmgd/except.hpp>
 #include <lmgd/log.hpp>
 
 #include <asio/buffers_iterator.hpp>
@@ -19,28 +20,34 @@ namespace network
         open(hostname, port);
     }
 
-    void Socket::read(char* data, std::size_t bytes)
+    void Socket::read(std::byte* data, std::size_t bytes)
     {
         Log::trace() << "Reading " << bytes << " bytes from socket...";
 
-        std::size_t reply_length = asio::read(socket_, asio::buffer(data, bytes));
-
-        assert(reply_length == bytes);
+        std::size_t reply_length =
+            asio::read(socket_, asio::buffer(reinterpret_cast<char*>(data), bytes));
 
         Log::trace() << "Received " << reply_length << " bytes from socket.";
+
+        if (reply_length != bytes)
+        {
+            raise("Unexpected number of bytes read from socket");
+        }
     }
 
-    void Socket::write(const char* data, std::size_t bytes)
+    void Socket::write(const std::byte* data, std::size_t bytes)
     {
-        // TODO reduce severity
         Log::trace() << "Writing " << bytes << " bytes onto socket...";
 
-        std::size_t send_bytes = asio::write(socket_, asio::buffer(data, bytes));
+        std::size_t send_bytes =
+            asio::write(socket_, asio::buffer(reinterpret_cast<const char*>(data), bytes));
 
         Log::trace() << "Wrote " << send_bytes << " bytes onto socket.";
 
-        // FIXME throw a proper exception here
-        assert(send_bytes == bytes);
+        if (send_bytes != bytes)
+        {
+            raise("Unexpected number of bytes written onto socket");
+        }
     }
 
     std::string Socket::read_line(char delim)
@@ -91,5 +98,5 @@ namespace network
             Log::error() << "Catched exception while closing socket: " << e.what();
         }
     }
-}
-}
+} // namespace network
+} // namespace lmgd

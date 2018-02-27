@@ -10,6 +10,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <string>
 #include <thread>
 #include <utility>
 
@@ -65,7 +66,7 @@ public:
         logging::info() << "errors: " << connection_->read_ascii();
 
         std::string action = "ACTN; TSSP?";
-//        std::string action = "ACTN; TSEN?; SPTPOS?";
+        // std::string action = "ACTN; TSEN?; SPTPOS?";
         for (const auto& track : nitro::lang::enumerate(tracks_))
         {
             action += "; GLPVAL? " + std::to_string(track.index()) +
@@ -124,10 +125,9 @@ public:
             for (auto entry : nitro::lang::enumerate(time_list.second))
             {
                 // TODO Rounding?!
-                int64_t time_ns =
-                    start_time_ns + int64_t(entry.index() * 1000000000l / sampling_rate_);
-                local_clock::time_point tp{ std::chrono::nanoseconds(time_ns) };
-                c.write(convert_.to_ticks(tp), entry.value());
+                auto time_ns = std::chrono::nanoseconds(
+                    start_time_ns + int64_t(entry.index() * 1000000000l / sampling_rate_));
+                c.write(convert_.to_ticks(time_ns), entry.value());
             }
         }
     }

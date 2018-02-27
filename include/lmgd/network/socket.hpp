@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include <cstddef>
+
 namespace lmgd
 {
 namespace network
@@ -23,13 +25,13 @@ namespace network
         template <typename T>
         void write(const T& data)
         {
-            write(reinterpret_cast<const char*>(&data), sizeof(T));
+            write(reinterpret_cast<const std::byte*>(&data), sizeof(T));
         }
 
         template <typename T>
         void read(T& data)
         {
-            read(reinterpret_cast<char*>(&data), sizeof(T));
+            read(reinterpret_cast<std::byte*>(&data), sizeof(T));
         }
 
         template <typename T>
@@ -37,7 +39,7 @@ namespace network
         {
             data.resize(num_elements);
 
-            read(reinterpret_cast<char*>(data.data()), num_elements * sizeof(T));
+            read(reinterpret_cast<std::byte*>(data.data()), num_elements * sizeof(T));
         }
 
         void read(std::string& data, std::size_t num_elements)
@@ -55,9 +57,9 @@ namespace network
 
         std::string read_line(char delim = '\n');
 
-        void read(char* data, std::size_t bytes);
+        void read(std::byte* data, std::size_t bytes);
 
-        void write(const char* data, std::size_t bytes);
+        void write(const std::byte* data, std::size_t bytes);
 
         void open(const std::string& host, int port);
 
@@ -96,7 +98,7 @@ namespace network
     template <typename T>
     inline Socket& operator<<(Socket& s, const std::vector<T>& v)
     {
-        s.write(reinterpret_cast<const char*>(v.data()), v.size() * sizeof(T));
+        s.write(reinterpret_cast<const std::byte*>(v.data()), v.size() * sizeof(T));
 
         return s;
     }
@@ -104,9 +106,9 @@ namespace network
     template <>
     inline Socket& operator<<(Socket& s, const std::string& v)
     {
-        s.write(v.data(), v.size() + 1);
+        s.write(reinterpret_cast<const std::byte*>(v.data()), v.size() + 1);
 
         return s;
     }
-}
-}
+} // namespace network
+} // namespace lmgd

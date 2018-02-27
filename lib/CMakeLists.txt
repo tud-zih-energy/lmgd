@@ -7,10 +7,11 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 target_link_libraries(asio INTERFACE Threads::Threads)
 
+set(NITRO_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(nitro)
 
-# Clap your hands, when it's hacky and you know it.
-# CLAP CLAP CLAP CLAP CLAP CLAP CLAP CLAP CLAP CLAP CLAP 
-add_library(ScorepPluginCXX INTERFACE)
-target_include_directories(ScorepPluginCXX SYSTEM INTERFACE scorep_plugin_cxx_wrapper/include)
-target_link_libraries(ScorepPluginCXX INTERFACE Nitro::Log)
+if(BUILD_SCOREP_PLUGIN)
+    add_subdirectory(scorep_plugin_cxx_wrapper)
+endif()
+
+add_subdirectory(dataheap2)

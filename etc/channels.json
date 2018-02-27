@@ -1,0 +1,82 @@
+{
+    "channels": [
+        {
+            "name": "ariel.s0",
+            "coupling": "ACDC",
+            "voltage": 12.5,
+            "current": 32
+        },
+        {
+            "name": "ariel.s1",
+            "coupling": "ACDC",
+            "voltage": 12.5,
+            "current": 32
+        },
+        {
+            "name": "ariel.dram0",
+            "coupling": "ACDC",
+            "voltage": 12.5,
+            "current": 20
+        },
+        {
+            "name": "ariel.dram1",
+            "coupling": "ACDC",
+            "voltage": 12.5,
+            "current": 20
+        },
+        {
+            "name": "ariel.board.12V",
+            "coupling": "ACDC",
+            "voltage": 12.5,
+            "current": 0.005
+        },
+        {
+            "name": "ariel.board.5V",
+            "coupling": "ACDC",
+            "voltage": 6,
+            "current": 0.005
+        },
+        {
+            "name": "ariel.board.3.3V",
+            "coupling": "ACDC",
+            "voltage": 6,
+            "current": 0.005
+        },
+        {
+            "name": "ariel.fan",
+            "coupling": "ACDC",
+            "voltage": 12.5,
+            "current": 1.2
+        },
+        {
+            "name": "ariel.perif.12V",
+            "coupling": "ACDC",
+            "voltage": 12.5,
+            "current": 1.2
+        },
+        {
+            "name": "ariel.perif.5V",
+            "coupling": "ACDC",
+            "voltage": 6,
+            "current": 1.2
+        },
+        {
+            "name": "ariel.sata.12V",
+            "coupling": "ACDC",
+            "voltage": 12.5,
+            "current": 1.2
+        },
+        {
+            "name": "ariel.sata.5V",
+            "coupling": "ACDC",
+            "voltage": 6,
+            "current": 1.2
+        },
+        {
+            "name": "ariel.sata.3.3V",
+            "coupling": "ACDC",
+            "voltage": 6,
+            "current": 1.2
+        }
+    ]
+}

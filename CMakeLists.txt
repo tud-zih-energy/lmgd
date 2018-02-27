@@ -1,48 +1,52 @@
 cmake_minimum_required(VERSION 3.9)
 project(lmgd)
 
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
+include(cmake/DefaultBuildType.cmake)
+include(cmake/GitSubmoduleUpdate.cmake)
 
-# XXX TODO set_property(TARGET NitroJiffy PROPERTY POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+git_submodule_update()
 
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message(STATUS "Setting build type to 'Debug' as none was specified.")
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
-
-    # Set the possible values of build type for cmake-gui
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-            "MinSizeRel" "RelWithDebInfo")
-endif()
-
-# Intialize git submodules if not done already
-file(GLOB SUBMODULE_FILES "lib/asio/*")
-list(LENGTH SUBMODULE_FILES COUNT_ASIO)
-file(GLOB SUBMODULE_FILES "lib/nitro/*")
-list(LENGTH SUBMODULE_FILES COUNT_NITRO)
-file(GLOB SUBMODULE_FILES "lib/scorep_plugin_cxx_wrapper/*")
-list(LENGTH SUBMODULE_FILES COUNT_SCOREP_PLUGIN_CXX_WRAPPER)
-if(${COUNT_ASIO} EQUAL 0 OR ${COUNT_NITRO} EQUAL 0 OR ${COUNT_SCOREP_PLUGIN_CXX_WRAPPER} EQUAL 0)
-    message(STATUS "Initializing git submodule")
-    execute_process(COMMAND "git" "submodule" "init" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-    execute_process(COMMAND "git" "submodule" "update" WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
-endif()
-
+option(BUILD_SCOREP_PLUGIN "Include the Score-p metric plugin in the build." OFF)
 
 add_subdirectory(lib)
 
-set(SOURCE_FILES src/main.cpp
-                 src/socket.cpp)
+set(SOURCE_FILES
+    src/main.cpp
+
+    src/network/socket.cpp
+    src/network/connection.cpp
+
+    src/source/source.cpp
+
+    src/device/device.cpp
+)
 
 add_executable(lmgd ${SOURCE_FILES})
 target_compile_features(lmgd PUBLIC cxx_std_17)
-target_link_libraries(lmgd PRIVATE asio Nitro::Log Nitro::Jiffy)
-target_include_directories(lmgd PUBLIC include)
-
-add_library(lmg_plugin SHARED src/module.cpp src/socket.cpp)
-target_compile_features(lmg_plugin PUBLIC cxx_std_17)
-target_link_libraries(lmg_plugin PRIVATE ScorepPluginCXX asio Nitro::Log Nitro::Jiffy Nitro::Env)
-target_include_directories(lmg_plugin PUBLIC
-    include
-    /opt/scorep/2016-09-07_metric/include 
+target_link_libraries(lmgd
+    PRIVATE
+        asio
+        Nitro::nitro-log
+        Nitro::nitro-jiffy
+        dataheap2::source
 )
+target_include_directories(lmgd PUBLIC include)
+target_compile_options(lmgd PUBLIC $<$<CONFIG:Debug>:-Wall -pedantic -Wextra>)
+
+
+add_executable(ilmg src/interactive.cpp src/network/socket.cpp src/network/connection.cpp)
+target_compile_features(ilmg PUBLIC cxx_std_17)
+target_link_libraries(ilmg PRIVATE asio Nitro::nitro-log Nitro::nitro-jiffy)
+target_include_directories(ilmg PUBLIC include)
+
+if(BUILD_SCOREP_PLUGIN)
+    add_library(lmg_plugin MODULE src/module.cpp src/network/socket.cpp)
+    target_compile_features(lmg_plugin PUBLIC cxx_std_17)
+    target_link_libraries(lmg_plugin
+        PRIVATE
+            Scorep::scorep-plugin-cxx
+            asio
+            Nitro::nitro-jiffy
+    )
+    target_include_directories(lmg_plugin PUBLIC include)
+endif()

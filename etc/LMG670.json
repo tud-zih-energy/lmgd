@@ -1,0 +1,57 @@
+{
+    "measurement":
+    {
+        "filter": "",
+        "samping_rate": 500000,
+        "device":
+        {
+            "connection": "socket",
+            "address": "localhost"
+        }
+    },
+    "channels":
+    [
+        {
+            "name": "ariel.s0.package",
+            "coupling": "ACDC",
+            "voltage_range": 12.5,
+            "current_range": 32,
+            "metrics": ["power"]
+        },
+        {
+            "name": "ariel.s0.dram",
+            "coupling": "ACDC",
+            "voltage_range": 12.5,
+            "current_range": 20,
+            "metrics": ["power"]
+        },
+        {
+            "name": "ariel.s1.package",
+            "coupling": "ACDC",
+            "voltage_range": 12.5,
+            "current_range": 32,
+            "metrics": ["power"]
+        },
+        {
+            "name": "ariel.s1.dram",
+            "coupling": "ACDC",
+            "voltage_range": 12.5,
+            "current_range": 20,
+            "metrics": ["power"]
+        },
+        {
+            "name": "ariel.board.12V",
+            "coupling": "ACDC",
+            "voltage_range": 12.5,
+            "current_range": 0.005,
+            "metrics": ["power"]
+        },
+        {
+            "name": "ariel.fan",
+            "coupling": "ACDC",
+            "voltage_range": 12.5,
+            "current_range": 1.2,
+            "metrics": ["power"]
+        }
+    ]
+}

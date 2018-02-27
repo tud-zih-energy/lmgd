@@ -1,0 +1,7 @@
+{
+    "dataheap2":
+    {
+        "token": "LMG670",
+        "server": "amqp://localhost"
+    }
+}

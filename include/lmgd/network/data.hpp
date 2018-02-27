@@ -1,11 +1,14 @@
 #pragma once
 
+#include <lmgd/time.hpp>
+
 #include <cassert>
 #include <cstddef>
 #include <memory>
+#include <string>
 #include <vector>
 
-namespace lmgd
+namespace lmgd::network
 {
 
 using Buffer = std::vector<std::byte>;
@@ -65,16 +68,14 @@ public:
         return *reinterpret_cast<int64_t*>(read(sizeof(int64_t)));
     }
 
-    int64_t read_time()
+    time::Duration read_time()
     {
-        // TODO duration?!
-        return read_int();
+        return time::Duration(read_int());
     }
 
-    int64_t read_date()
+    time::TimePoint read_date()
     {
-        // TODO timepoint?!
-        return read_int();
+        return time::TimePoint(time::Duration(read_int()));
     }
 
     std::string read_string()
@@ -134,4 +135,4 @@ private:
     std::shared_ptr<Buffer> buffer_;
     size_t position_ = 0;
 };
-}
+} // namespace lmgd::network
