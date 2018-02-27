@@ -2,7 +2,7 @@
     "measurement":
     {
         "filter": "",
-        "samping_rate": 500000,
+        "samping_rate": 50000,
         "device":
         {
             "connection": "socket",

@@ -10,6 +10,8 @@
 
 using lmgd::Log;
 
+// TODO setup signal handler and clean up properly ...
+
 int main(int argc, char* argv[])
 {
     lmgd::set_severity_debug();

@@ -71,8 +71,11 @@ Device::Device(const nlohmann::json& config)
     Log::debug() << "gap_length: " << gap_length_ << ", sampling_rate: " << sampling_rate_;
 
     // build action command, which gets execute during the following CONT ON
-    // TSSP - timestamp
-    std::string action = "ACTN; TSSP?";
+    // Immortal quotation: "Die Dokumentation wir noch angepasst"
+    // TSCYCL is the timestamp of the cycle
+    // DURCYCL I have no fucking idea. Good luck with that.
+    std::string action = "ACTN; TSCYCL?; DURCYCL?";
+
     // each channel only has the one track -> power
     for (auto i = 0u; i < channels_.size(); i++)
     {
@@ -116,15 +119,17 @@ void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetr
 {
     auto data = connection_->read_binary();
 
-    Log::info() << data.size();
-
     if (data.size() == 1)
     {
-        Log::warn() << "Aliens approaching earth.";
-        return; // XXX buffer with just '1' at the end... hmmm
+        // XXX buffer with just '1' at the end... hmmm
+        raise("Aliens approaching earth. I don't know what this means :(");
     }
 
     auto start_time_ns = data.read_date();
+    auto num_samples = data.read_int();
+
+    Log::debug() << "start time ns " << start_time_ns.time_since_epoch().count();
+    Log::debug() << "DURCYCL " << num_samples;
 
     for (auto i = 0u; i < channels_.size(); i++)
     {
@@ -132,16 +137,18 @@ void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetr
 
         auto list = data.read_float_list();
 
+        if (i == 0)
+        {
+            Log::debug() << "num samples per channel " << list.size();
+        }
+
         for (auto entry : nitro::lang::enumerate(list))
         {
+            // TODO fix timestamps
             auto time_ns =
                 start_time_ns +
                 std::chrono::nanoseconds(int64_t(entry.index() * 1000000000l / sampling_rate_));
             metric.get().send({ dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value() });
-            if (entry.index() == 0)
-            {
-                Log::info() << time_ns.time_since_epoch().count() << " : " << entry.value() << " W";
-            }
         }
     }
 }
