@@ -59,7 +59,7 @@ Device::Device(const nlohmann::json& config)
     // activate scope mode
     connection_->check_command("CYCLMOD SCOPE");
 
-    // no one knows, why this is for, but it is part of the example ¯\_(ツ)_/¯
+    // no one knows, what this is for, but it is part of the example ¯\_(ツ)_/¯
     connection_->check_command("INIM");
 
     connection_->send_command("GLPTLEN?");
@@ -71,7 +71,7 @@ Device::Device(const nlohmann::json& config)
     Log::debug() << "gap_length: " << gap_length_ << ", sampling_rate: " << sampling_rate_;
 
     // build action command, which gets execute during the following CONT ON
-    // Immortal quotation: "Die Dokumentation wir noch angepasst"
+    // Immortal quote: "Die Dokumentation wird noch angepasst"
     // TSCYCL is the timestamp of the cycle
     // DURCYCL I have no fucking idea. Good luck with that.
     std::string action = "ACTN; TSCYCL?; DURCYCL?";
@@ -125,11 +125,8 @@ void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetr
         raise("Aliens approaching earth. I don't know what this means :(");
     }
 
-    auto start_time_ns = data.read_date();
-    auto num_samples = data.read_int();
-
-    Log::debug() << "start time ns " << start_time_ns.time_since_epoch().count();
-    Log::debug() << "DURCYCL " << num_samples;
+    auto cycle_start = data.read_date();
+    auto cycle_duration = data.read_time();
 
     for (auto i = 0u; i < channels_.size(); i++)
     {
@@ -137,17 +134,9 @@ void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetr
 
         auto list = data.read_float_list();
 
-        if (i == 0)
-        {
-            Log::debug() << "num samples per channel " << list.size();
-        }
-
         for (auto entry : nitro::lang::enumerate(list))
         {
-            // TODO fix timestamps
-            auto time_ns =
-                start_time_ns +
-                std::chrono::nanoseconds(int64_t(entry.index() * 1000000000l / sampling_rate_));
+            auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
             metric.get().send({ dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value() });
         }
     }
