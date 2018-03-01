@@ -59,6 +59,9 @@ Device::Device(const nlohmann::json& config)
     // activate scope mode
     connection_->check_command("CYCLMOD SCOPE");
 
+    // disable zero supression
+    connection_->check_command("ZSUP 0");
+
     // no one knows, what this is for, but it is part of the example ¯\_(ツ)_/¯
     connection_->check_command("INIM");
 
