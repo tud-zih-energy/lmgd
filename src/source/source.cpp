@@ -20,6 +20,8 @@ void Source::source_config_callback(const nlohmann::json& config)
 {
     Log::info() << "Called source_config_callback()";
 
+    config_ = config;
+
     device_ = std::make_unique<lmgd::device::Device>(config);
 }
 
@@ -31,14 +33,11 @@ void Source::ready_callback()
 {
     Log::info() << "Called ready_callback()";
 
-    for (auto& metric_name : device_->get_metrics())
+    for (auto& track : device_->get_tracks())
     {
-        auto& metric = (*this)[metric_name];
-
-        // TODO which size of chunking?
-        metric.enable_chunking(10000);
-
-        metrics_.push_back(std::ref(metric));
+        auto& source_metric = (*this)[track];
+        source_metric.enable_chunking(config_["measurement"]["chunking"].get<int>());
+        metrics_.push_back(std::ref(source_metric));
     }
 
     device_->start_recording();

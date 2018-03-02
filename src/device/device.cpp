@@ -12,20 +12,6 @@
 #include <cassert>
 #include <string>
 
-namespace std
-{
-template <typename T>
-inline std::ostream& operator<<(std::ostream& s, const std::vector<T>& v)
-{
-    for (auto t : v)
-    {
-        s << t << ",";
-    }
-
-    return s;
-}
-} // namespace std
-
 namespace lmgd::device
 {
 
@@ -39,13 +25,13 @@ Device::Device(const nlohmann::json& config)
     connection_ = std::make_unique<network::Connection>(
         config["measurement"]["device"]["address"].get<std::string>());
 
-    for (auto channel : nitro::lang::enumerate(config["channels"]))
-    {
-        channels_.emplace_back(*connection_, channel.index() + 1, channel.value());
-    }
-
     // just in case...
     connection_->send_command("CONT OFF");
+
+    for (auto channel : nitro::lang::enumerate(config["channels"]))
+    {
+        channels_.emplace_back(*this, channel.index() + 1, channel.value());
+    }
 
     // set grouping -> all channels in one group
     // TODO this explodes if not all channels are used :(
@@ -54,7 +40,7 @@ Device::Device(const nlohmann::json& config)
 
     // set sampling rate
     connection_->check_command("GLCSR " +
-                               std::to_string(config["measurement"]["samping_rate"].get<int>()));
+                               std::to_string(config["measurement"]["sampling_rate"].get<int>()));
 
     // activate scope mode
     connection_->check_command("CYCLMOD SCOPE");
@@ -80,7 +66,7 @@ Device::Device(const nlohmann::json& config)
     std::string action = "ACTN; TSCYCL?; DURCYCL?";
 
     // each channel only has the one track -> power
-    for (auto i = 0u; i < channels_.size(); i++)
+    for (auto i = 0u; i < tracks_.size(); i++)
     {
         action +=
             "; GLPVAL? " + std::to_string(i) + ", (0:" + std::to_string(gap_length_ - 1) + ")";
@@ -106,16 +92,37 @@ void Device::start_recording()
     connection_->send_command("CONT ON");
 }
 
-std::vector<std::string> Device::get_metrics() const
+void Device::add_track(const Channel& channel, Channel::MetricType type)
 {
-    std::vector<std::string> res;
 
-    for (auto& channel : channels_)
+    auto glctrac = [this](int track_id, int phase, char type) {
+        this->connection_->check_command("GLCTRAC " + std::to_string(track_id) + ", \"" + type +
+                                         "1" + std::to_string(phase) + "21\"");
+    };
+
+    switch (type)
     {
-        res.push_back(channel.name() + ".power");
-    }
+    case Channel::MetricType::voltage:
+        glctrac(tracks_.size(), channel.id(), 'U');
+        tracks_.push_back(channel.name() + ".voltage");
 
-    return res;
+        break;
+    case Channel::MetricType::current:
+        glctrac(tracks_.size(), channel.id(), 'I');
+        tracks_.push_back(channel.name() + ".current");
+        break;
+    case Channel::MetricType::power:
+        glctrac(tracks_.size(), channel.id(), 'P');
+        tracks_.push_back(channel.name() + ".power");
+        break;
+    default:
+        raise("WHUUUUUT. HALP. I'M TRAPPED HERE.");
+    }
+}
+
+const std::vector<std::string>& Device::get_tracks() const
+{
+    return tracks_;
 }
 
 void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetric>>& metrics)
@@ -131,9 +138,8 @@ void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetr
     auto cycle_start = data.read_date();
     auto cycle_duration = data.read_time();
 
-    for (auto i = 0u; i < channels_.size(); i++)
+    for (auto& metric : metrics)
     {
-        auto& metric = metrics[i];
 
         auto list = data.read_float_list();
 

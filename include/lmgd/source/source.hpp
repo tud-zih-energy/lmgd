@@ -22,6 +22,7 @@ public:
 private:
     std::unique_ptr<lmgd::device::Device> device_;
     std::vector<std::reference_wrapper<dataheap2::SourceMetric>> metrics_;
+    nlohmann::json config_;
 };
 
 } // namespace lmgd::source

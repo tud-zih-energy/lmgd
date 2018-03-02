@@ -19,6 +19,7 @@ set(SOURCE_FILES
     src/source/source.cpp
 
     src/device/device.cpp
+    src/device/channel.cpp
 )
 
 add_executable(lmgd ${SOURCE_FILES})
