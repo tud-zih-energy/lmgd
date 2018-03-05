@@ -37,7 +37,7 @@ target_compile_options(lmgd PUBLIC $<$<CONFIG:Debug>:-Wall -pedantic -Wextra>)
 
 add_executable(ilmg src/interactive.cpp src/network/socket.cpp src/network/connection.cpp)
 target_compile_features(ilmg PUBLIC cxx_std_17)
-target_link_libraries(ilmg PRIVATE asio Nitro::nitro-log Nitro::nitro-jiffy)
+target_link_libraries(ilmg PRIVATE asio pthread Nitro::nitro-log Nitro::nitro-jiffy)
 target_include_directories(ilmg PUBLIC include)
 
 if(BUILD_SCOREP_PLUGIN)
