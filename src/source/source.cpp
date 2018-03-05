@@ -9,7 +9,8 @@
 namespace lmgd::source
 {
 
-Source::Source(const std::string& server, const std::string& token) : dataheap2::Source(token)
+Source::Source(const std::string& server, const std::string& token)
+: dataheap2::Source(token), timer_(io_service)
 {
     Log::info() << "Called lmgd::Source::Source()";
 
@@ -22,7 +23,7 @@ void Source::source_config_callback(const nlohmann::json& config)
 
     config_ = config;
 
-    device_ = std::make_unique<lmgd::device::Device>(config);
+    device_ = std::make_unique<lmgd::device::Device>(io_service, config);
 }
 
 Source::~Source()
@@ -43,8 +44,14 @@ void Source::ready_callback()
     device_->start_recording();
 
     // TODO is this enough? or do we need more wakeups?
-    register_timer([this]() { this->device_->fetch_data(this->metrics_); },
-                   std::chrono::milliseconds(100));
+    timer_.start(
+        [this](auto error_code) {
+            // what could possibly go wrong?
+            (void)error_code;
+            this->device_->fetch_data(this->metrics_);
+            return dataheap2::Timer::TimerResult::repeat;
+        },
+        std::chrono::milliseconds(100));
 }
 
 } // namespace lmgd::source

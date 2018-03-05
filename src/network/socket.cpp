@@ -15,7 +15,12 @@ namespace lmgd
 namespace network
 {
 
-    Socket::Socket(const std::string& hostname, int port) : socket_(io_service_)
+    Socket::Socket(asio::io_service& io_service) : io_service_(io_service), socket_(io_service_)
+    {
+    }
+
+    Socket::Socket(asio::io_service& io_service, const std::string& hostname, int port)
+    : Socket::Socket(io_service)
     {
         open(hostname, port);
     }

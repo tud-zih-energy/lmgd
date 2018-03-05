@@ -10,7 +10,8 @@
 namespace lmgd::network
 {
 
-Connection::Connection(const std::string& hostname) : hostname_(hostname)
+Connection::Connection(asio::io_service& io_service, const std::string& hostname)
+: io_service_(io_service), hostname_(hostname)
 {
     reset();
     start();
@@ -26,7 +27,7 @@ Connection::~Connection()
 
 void Connection::start()
 {
-    socket_ = std::make_unique<lmgd::network::Socket>(hostname_, 5025);
+    socket_ = std::make_unique<lmgd::network::Socket>(io_service_, hostname_, 5025);
 
     send_command("*rst");
     send_command("*idn?");
@@ -49,7 +50,7 @@ void Connection::reset()
 {
     Log::trace() << "Sending reset to device...";
 
-    lmgd::network::Socket socket(hostname_, 5026);
+    lmgd::network::Socket socket(io_service_, hostname_, 5026);
 
     socket << "break\n";
 

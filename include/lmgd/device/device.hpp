@@ -4,6 +4,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include <asio/io_service.hpp>
+
 #include <memory>
 #include <vector>
 
@@ -22,7 +24,7 @@ namespace lmgd::device
 class Device
 {
 public:
-    Device(const nlohmann::json& config);
+    Device(asio::io_service& io_service, const nlohmann::json& config);
 
     ~Device();
 
@@ -38,6 +40,7 @@ private:
     friend class Channel;
 
 private:
+    asio::io_service& io_service_;
     std::string name_;
     std::unique_ptr<lmgd::network::Connection> connection_;
     std::vector<Channel> channels_;

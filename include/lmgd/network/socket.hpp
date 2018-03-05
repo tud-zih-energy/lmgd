@@ -6,6 +6,7 @@
 #include <asio/ip/tcp.hpp>
 #include <asio/streambuf.hpp>
 
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -19,8 +20,9 @@ namespace network
     {
 
     public:
-        Socket() = default;
-        Socket(const std::string& hostname, int port);
+        Socket() = delete;
+        Socket(asio::io_service& io_service);
+        Socket(asio::io_service& io_service, const std::string& hostname, int port);
 
         template <typename T>
         void write(const T& data)
@@ -74,7 +76,7 @@ namespace network
         ~Socket();
 
     private:
-        asio::io_service io_service_;
+        asio::io_service& io_service_;
         asio::ip::tcp::socket socket_;
         asio::streambuf recv_buffer_;
     };

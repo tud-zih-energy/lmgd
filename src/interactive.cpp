@@ -1,6 +1,8 @@
 #include <lmgd/log.hpp>
 #include <lmgd/network/connection.hpp>
 
+#include <asio/io_service.hpp>
+
 #include <iostream>
 #include <stdexcept>
 
@@ -18,7 +20,9 @@ int main(int argc, char* argv[])
 
     try
     {
-        lmgd::network::Connection socket(hostname);
+        asio::io_service io_serivce;
+
+        lmgd::network::Connection socket(io_serivce, hostname);
 
         Log::info() << "Connected.";
 

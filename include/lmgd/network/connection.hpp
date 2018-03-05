@@ -2,6 +2,8 @@
 
 #include <lmgd/network/data.hpp>
 
+#include <asio/io_service.hpp>
+
 #include <memory>
 
 namespace lmgd::network
@@ -18,7 +20,7 @@ public:
         binary = 1
     };
 
-    Connection(const std::string& hostname);
+    Connection(asio::io_service& io_service, const std::string& hostname);
 
     ~Connection();
 
@@ -45,6 +47,7 @@ public:
     std::string read_ascii();
 
 private:
+    asio::io_service& io_service_;
     std::string hostname_;
     std::unique_ptr<lmgd::network::Socket> socket_;
     Mode mode_ = Mode::ascii;

@@ -15,7 +15,7 @@
 namespace lmgd::device
 {
 
-Device::Device(const nlohmann::json& config)
+Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_service_(io_service)
 {
     if (config["measurement"]["device"]["connection"].get<std::string>() != "socket")
     {
@@ -23,7 +23,7 @@ Device::Device(const nlohmann::json& config)
     }
 
     connection_ = std::make_unique<network::Connection>(
-        config["measurement"]["device"]["address"].get<std::string>());
+        io_service_, config["measurement"]["device"]["address"].get<std::string>());
 
     // just in case...
     connection_->send_command("CONT OFF");
