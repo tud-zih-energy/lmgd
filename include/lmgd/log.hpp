@@ -38,7 +38,7 @@ namespace detail
 
     template <typename Record>
     using log_filter = nitro::log::filter::severity_filter<Record>;
-}
+} // namespace detail
 
 using Log = nitro::log::logger<detail::record, detail::log_formater, nitro::log::sink::StdOut,
                                detail::log_filter>;
@@ -48,4 +48,9 @@ inline void set_severity_debug()
     nitro::log::filter::severity_filter<detail::record>::set_severity(
         nitro::log::severity_level::debug);
 }
+inline void set_severity_info()
+{
+    nitro::log::filter::severity_filter<detail::record>::set_severity(
+        nitro::log::severity_level::info);
 }
+} // namespace lmgd

@@ -30,6 +30,7 @@ public:
 
 public:
     void start_recording();
+    void stop_recording();
     void fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetric>>&);
 
     const std::vector<std::string>& get_tracks() const;
@@ -45,6 +46,8 @@ private:
     std::unique_ptr<lmgd::network::Connection> connection_;
     std::vector<Channel> channels_;
     std::vector<std::string> tracks_;
+
+    bool recording_;
 
     int64_t gap_length_;
     double sampling_rate_;

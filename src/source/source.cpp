@@ -10,16 +10,31 @@ namespace lmgd::source
 {
 
 Source::Source(const std::string& server, const std::string& token)
-: dataheap2::Source(token), timer_(io_service)
+: dataheap2::Source(token), signals_(io_service, SIGINT, SIGTERM), timer_(io_service)
 {
-    Log::info() << "Called lmgd::Source::Source()";
+    Log::debug() << "Called lmgd::Source::Source()";
+
+    // Register signal handlers so that the daemon may be shut down.
+    signals_.async_wait([this](auto, auto signal) {
+        if (!signal)
+        {
+            return;
+        }
+        Log::info() << "Catched signal " << signal << ". Shutdown.";
+        if (device_)
+        {
+            device_->stop_recording();
+        }
+        // Maybe this isn't a good idea... who knows ¯\_(ツ)_/¯
+        io_service.stop();
+    });
 
     connect(server);
 }
 
 void Source::source_config_callback(const nlohmann::json& config)
 {
-    Log::info() << "Called source_config_callback()";
+    Log::debug() << "Called source_config_callback()";
 
     config_ = config;
 
@@ -32,7 +47,7 @@ Source::~Source()
 
 void Source::ready_callback()
 {
-    Log::info() << "Called ready_callback()";
+    Log::debug() << "Called ready_callback()";
 
     for (auto& track : device_->get_tracks())
     {

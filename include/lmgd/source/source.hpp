@@ -4,6 +4,7 @@
 #include <dataheap2/timer.hpp>
 
 #include <asio/basic_waitable_timer.hpp>
+#include <asio/signal_set.hpp>
 
 namespace lmgd::device
 {
@@ -23,6 +24,7 @@ public:
     void ready_callback() override;
 
 private:
+    asio::signal_set signals_;
     dataheap2::Timer timer_;
     std::unique_ptr<lmgd::device::Device> device_;
     std::vector<std::reference_wrapper<dataheap2::SourceMetric>> metrics_;

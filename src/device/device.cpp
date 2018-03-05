@@ -25,6 +25,9 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
     connection_ = std::make_unique<network::Connection>(
         io_service_, config["measurement"]["device"]["address"].get<std::string>());
 
+    connection_->send_command("ERRALL?");
+    Log::debug() << "Error log before:" << connection_->read_ascii();
+
     // just in case...
     connection_->send_command("CONT OFF");
 
@@ -80,16 +83,24 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
 
 Device::~Device()
 {
-    connection_->send_command("CONT OFF");
-
-    // god knows why
-    connection_->mode(lmgd::network::Connection::Mode::ascii);
+    if (recording_)
+    {
+        stop_recording();
+    }
 }
 
 void Device::start_recording()
 {
-    Log::info() << "Starting recording";
+    Log::info() << "Start recording";
     connection_->send_command("CONT ON");
+    recording_ = true;
+}
+
+void Device::stop_recording()
+{
+    Log::info() << "Stop recording";
+    connection_->send_command("CONT OFF");
+    recording_ = false;
 }
 
 void Device::add_track(const Channel& channel, Channel::MetricType type)

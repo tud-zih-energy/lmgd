@@ -14,8 +14,6 @@ using lmgd::Log;
 
 int main(int argc, char* argv[])
 {
-    lmgd::set_severity_debug();
-
     nitro::broken_options::parser parser("lmgd");
 
     parser.option("server", "The dataheap2 management server to connect to.")
@@ -24,10 +22,22 @@ int main(int argc, char* argv[])
     parser.option("token",
                   "The token used for source authentification against the dataheap2 manager.");
     parser.toggle("help").short_name("h");
+    parser.toggle("debug").short_name("d");
+    parser.toggle("trace").short_name("t");
 
     try
     {
         auto options = parser.parse(argc, argv);
+
+        if (!options.given("trace"))
+        {
+            lmgd::set_severity_debug();
+        }
+
+        if (!options.given("debug"))
+        {
+            lmgd::set_severity_info();
+        }
 
         if (options.given("help"))
         {
