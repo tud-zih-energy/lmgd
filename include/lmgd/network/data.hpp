@@ -63,6 +63,11 @@ public:
         return buffer_->data() + old_size;
     }
 
+    char read_char()
+    {
+        return *reinterpret_cast<char*>(read(sizeof(char)));
+    }
+
     int64_t read_int()
     {
         return *reinterpret_cast<int64_t*>(read(sizeof(int64_t)));

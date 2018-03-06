@@ -1,5 +1,6 @@
 #include <lmgd/device/device.hpp>
 
+#include <lmgd/network/async_binary_line_reader.hpp>
 #include <lmgd/network/connection.hpp>
 
 #include <lmgd/except.hpp>
@@ -139,19 +140,20 @@ const std::vector<std::string>& Device::get_tracks() const
 void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetric>>& metrics)
 {
     connection_->read_binary_async([&metrics, this](auto& data) {
-        if (data.size() == 1)
+        if (data->size() == 1)
         {
             // XXX buffer with just '1' at the end... hmmm
-            raise("Aliens approaching earth. I don't know what this means :(");
+            raise("Aliens approaching earth. I don't know what this means :(",
+                  std::to_string(data->read_char()));
         }
 
-        auto cycle_start = data.read_date();
-        auto cycle_duration = data.read_time();
+        auto cycle_start = data->read_date();
+        auto cycle_duration = data->read_time();
 
         for (auto& metric : metrics)
         {
 
-            auto list = data.read_float_list();
+            auto list = data->read_float_list();
 
             for (auto entry : nitro::lang::enumerate(list))
             {
@@ -160,9 +162,7 @@ void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetr
                     { dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value() });
             }
         }
-
-        // loop forevaaaaaa
-        this->fetch_data(metrics);
+        return network::CallbackResult::repeat;
     });
 }
 
