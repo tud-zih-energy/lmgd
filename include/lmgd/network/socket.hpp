@@ -75,6 +75,16 @@ namespace network
 
         ~Socket();
 
+        asio::ip::tcp::socket& asio_socket()
+        {
+            return socket_;
+        }
+
+        asio::streambuf& asio_buffer()
+        {
+            return recv_buffer_;
+        }
+
     private:
         asio::io_service& io_service_;
         asio::ip::tcp::socket socket_;

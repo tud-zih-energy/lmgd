@@ -59,14 +59,16 @@ void Source::ready_callback()
     device_->start_recording();
 
     // TODO is this enough? or do we need more wakeups?
-    timer_.start(
-        [this](auto error_code) {
-            // what could possibly go wrong?
-            (void)error_code;
-            this->device_->fetch_data(this->metrics_);
-            return dataheap2::Timer::TimerResult::repeat;
-        },
-        std::chrono::milliseconds(100));
+    // timer_.start(
+    //     [this](auto error_code) {
+    //         // what could possibly go wrong?
+    //         (void)error_code;
+    //         this->device_->fetch_data(this->metrics_);
+    //         return dataheap2::Timer::TimerResult::repeat;
+    //     },
+    //     std::chrono::milliseconds(100));
+
+    this->device_->fetch_data(this->metrics_);
 }
 
 } // namespace lmgd::source

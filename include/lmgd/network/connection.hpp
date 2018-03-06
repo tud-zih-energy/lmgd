@@ -4,6 +4,7 @@
 
 #include <asio/io_service.hpp>
 
+#include <functional>
 #include <memory>
 
 namespace lmgd::network
@@ -14,6 +15,8 @@ class Socket;
 class Connection
 {
 public:
+    using Callback = std::function<void(BinaryData&)>;
+
     enum class Mode
     {
         ascii = 0,
@@ -42,6 +45,8 @@ public:
 public:
     BinaryData read_binary(size_t reserved_size = 0);
 
+    void read_binary_async(Callback callback);
+
     std::vector<char> read_binary_raw();
 
     std::string read_ascii();
@@ -51,5 +56,6 @@ private:
     std::string hostname_;
     std::unique_ptr<lmgd::network::Socket> socket_;
     Mode mode_ = Mode::ascii;
+    Callback callback_;
 };
 } // namespace lmgd::network

@@ -138,28 +138,32 @@ const std::vector<std::string>& Device::get_tracks() const
 
 void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetric>>& metrics)
 {
-    auto data = connection_->read_binary();
-
-    if (data.size() == 1)
-    {
-        // XXX buffer with just '1' at the end... hmmm
-        raise("Aliens approaching earth. I don't know what this means :(");
-    }
-
-    auto cycle_start = data.read_date();
-    auto cycle_duration = data.read_time();
-
-    for (auto& metric : metrics)
-    {
-
-        auto list = data.read_float_list();
-
-        for (auto entry : nitro::lang::enumerate(list))
+    connection_->read_binary_async([&metrics, this](auto& data) {
+        if (data.size() == 1)
         {
-            auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
-            metric.get().send({ dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value() });
+            // XXX buffer with just '1' at the end... hmmm
+            raise("Aliens approaching earth. I don't know what this means :(");
         }
-    }
+
+        auto cycle_start = data.read_date();
+        auto cycle_duration = data.read_time();
+
+        for (auto& metric : metrics)
+        {
+
+            auto list = data.read_float_list();
+
+            for (auto entry : nitro::lang::enumerate(list))
+            {
+                auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
+                metric.get().send(
+                    { dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value() });
+            }
+        }
+
+        // loop forevaaaaaa
+        this->fetch_data(metrics);
+    });
 }
 
 } // namespace lmgd::device
