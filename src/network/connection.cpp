@@ -139,6 +139,9 @@ BinaryData Connection::read_binary(size_t reserved_size)
 void Connection::read_binary_async(Connection::Callback callback)
 {
     assert(mode_ == Mode::binary);
+    assert(!binary_line_reader_);
+    assert(socket_->asio_buffer().size() == 0);
+
     binary_line_reader_ = std::make_unique<AsyncBinaryLineReader<Connection::Callback>>(
         socket_->asio_socket(), callback);
     binary_line_reader_->read();

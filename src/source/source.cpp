@@ -4,6 +4,8 @@
 
 #include <lmgd/log.hpp>
 
+#include <nitro/lang/enumerate.hpp>
+
 #include <memory>
 
 namespace lmgd::source
@@ -20,13 +22,14 @@ Source::Source(const std::string& server, const std::string& token)
         {
             return;
         }
-        Log::info() << "Catched signal " << signal << ". Shutdown.";
+
+        stop_requested_ = true;
+
+        Log::info() << "Caught signal " << signal << ". Shutdown.";
         if (device_)
         {
             device_->stop_recording();
         }
-        // Maybe this isn't a good idea... who knows ¯\_(ツ)_/¯
-        io_service.stop();
     });
 
     connect(server);
@@ -35,19 +38,25 @@ Source::Source(const std::string& server, const std::string& token)
 void Source::source_config_callback(const nlohmann::json& config)
 {
     Log::debug() << "Called source_config_callback()";
-
+    std::lock_guard<std::mutex> lock(config_mutex_);
     config_ = config;
-
-    device_ = std::make_unique<lmgd::device::Device>(io_service, config);
+    if (device_)
+    {
+        Log::info() << "Received new config. Restarting requested.";
+        device_->stop_recording();
+    }
+    Log::debug() << "Finished source_config_callback()";
 }
 
 Source::~Source()
 {
 }
 
-void Source::ready_callback()
+void Source::setup_device()
 {
-    Log::debug() << "Called ready_callback()";
+    std::lock_guard<std::mutex> lock(config_mutex_);
+
+    device_ = std::make_unique<lmgd::device::Device>(io_service, config_);
 
     for (auto& track : device_->get_tracks())
     {
@@ -57,18 +66,49 @@ void Source::ready_callback()
     }
 
     device_->start_recording();
+    device_->fetch_data([this](auto& data) {
+        Log::trace() << "Called completion_callback: " << data->size();
+        if (data->size() == 1)
+        {
+            assert(data->read_char() == '1');
 
-    // TODO is this enough? or do we need more wakeups?
-    // timer_.start(
-    //     [this](auto error_code) {
-    //         // what could possibly go wrong?
-    //         (void)error_code;
-    //         this->device_->fetch_data(this->metrics_);
-    //         return dataheap2::Timer::TimerResult::repeat;
-    //     },
-    //     std::chrono::milliseconds(100));
+            if (stop_requested_)
+            {
+                Log::info() << "Datastream from device ended. Stop.";
+                this->io_service.stop();
+            }
+            else
+            {
+                Log::info() << "Datastream from device ended unexpectedly. Restarting...";
+                this->setup_device();
+            }
+            return network::CallbackResult::cancel;
+        }
 
-    this->device_->fetch_data(this->metrics_);
+        auto cycle_start = data->read_date();
+        auto cycle_duration = data->read_time();
+
+        for (auto& metric : this->metrics_)
+        {
+
+            auto list = data->read_float_list();
+
+            for (auto entry : nitro::lang::enumerate(list))
+            {
+                auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
+                metric.get().send(
+                    { dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value() });
+            }
+        }
+        return network::CallbackResult::repeat;
+    });
+}
+
+void Source::ready_callback()
+{
+    Log::debug() << "Called ready_callback()";
+    setup_device();
+    Log::debug() << "Finished ready_callback()";
 }
 
 } // namespace lmgd::source

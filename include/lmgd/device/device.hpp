@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lmgd/device/channel.hpp>
+#include <lmgd/network/connection.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -12,11 +13,6 @@
 namespace dataheap2
 {
 class SourceMetric;
-}
-
-namespace lmgd::network
-{
-class Connection;
 }
 
 namespace lmgd::device
@@ -31,7 +27,7 @@ public:
 public:
     void start_recording();
     void stop_recording();
-    void fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetric>>&);
+    void fetch_data(network::Connection::Callback);
 
     const std::vector<std::string>& get_tracks() const;
 

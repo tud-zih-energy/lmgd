@@ -6,6 +6,11 @@
 #include <asio/basic_waitable_timer.hpp>
 #include <asio/signal_set.hpp>
 
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <vector>
+
 namespace lmgd::device
 {
 class Device;
@@ -24,11 +29,16 @@ public:
     void ready_callback() override;
 
 private:
+    void setup_device();
+
+private:
+    std::mutex config_mutex_;
     asio::signal_set signals_;
     dataheap2::Timer timer_;
     std::unique_ptr<lmgd::device::Device> device_;
     std::vector<std::reference_wrapper<dataheap2::SourceMetric>> metrics_;
     nlohmann::json config_;
+    std::atomic<bool> stop_requested_ = false;
 };
 
 } // namespace lmgd::source

@@ -6,9 +6,9 @@
 #include <lmgd/except.hpp>
 #include <lmgd/log.hpp>
 
-#include <nitro/lang/enumerate.hpp>
-
 #include <dataheap2/source_metric.hpp>
+
+#include <nitro/lang/enumerate.hpp>
 
 #include <cassert>
 #include <string>
@@ -137,33 +137,11 @@ const std::vector<std::string>& Device::get_tracks() const
     return tracks_;
 }
 
-void Device::fetch_data(std::vector<std::reference_wrapper<dataheap2::SourceMetric>>& metrics)
+void Device::fetch_data(network::Connection::Callback cb)
 {
-    connection_->read_binary_async([&metrics, this](auto& data) {
-        if (data->size() == 1)
-        {
-            // XXX buffer with just '1' at the end... hmmm
-            raise("Aliens approaching earth. I don't know what this means :(",
-                  std::to_string(data->read_char()));
-        }
+    Log::debug() << "Device::fetch_data";
 
-        auto cycle_start = data->read_date();
-        auto cycle_duration = data->read_time();
-
-        for (auto& metric : metrics)
-        {
-
-            auto list = data->read_float_list();
-
-            for (auto entry : nitro::lang::enumerate(list))
-            {
-                auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
-                metric.get().send(
-                    { dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value() });
-            }
-        }
-        return network::CallbackResult::repeat;
-    });
+    connection_->read_binary_async(cb);
 }
 
 } // namespace lmgd::device

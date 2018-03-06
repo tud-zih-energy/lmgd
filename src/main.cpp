@@ -31,12 +31,14 @@ int main(int argc, char* argv[])
 
         if (!options.given("trace"))
         {
-            lmgd::set_severity_debug();
-        }
-
-        if (!options.given("debug"))
-        {
-            lmgd::set_severity_info();
+            if (!options.given("debug"))
+            {
+                lmgd::set_severity_info();
+            }
+            else
+            {
+                lmgd::set_severity_debug();
+            }
         }
 
         if (options.given("help"))
