@@ -2,6 +2,8 @@
 
 #include <lmgd/device/device.hpp>
 
+#include <sstream>
+
 namespace lmgd::device
 {
 Channel::SignalCoupling Channel::parse_coupling(const nlohmann::json& json_config)
@@ -25,59 +27,77 @@ Channel::SignalCoupling Channel::parse_coupling(const nlohmann::json& json_confi
           " for channel: ", json_config["name"].get<std::string>());
 }
 
-std::set<Channel::MetricType> Channel::parse_metrics(const nlohmann::json& config)
+Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config)
 {
     if (config["metrics"].size() == 0)
     {
-        raise("No metrics given for channel: ", config["name"].get<std::string>());
+        Log::info() << "No metrics given for channel: " << config["name"].get<std::string>();
     }
 
-    std::set<MetricType> metrics;
+    Channel::MetricSetType metrics;
 
     for (auto& metric_config : config["metrics"])
     {
-        auto metric = metric_config.get<std::string>();
+        auto metric_string = metric_config.get<std::string>();
+
+        std::stringstream str;
+        str << metric_string;
+
+        std::string metric;
+        std::getline(str, metric, '@');
+
+        MetricType metric_type;
 
         if (metric == "power")
         {
-            auto res = metrics.emplace(MetricType::power);
-            if (!res.second)
-            {
-                Log::warn() << "Metric " << metric << " has already been added to the channel'"
-                            << config["name"].get<std::string>() << "'. Ignoring.";
-            }
+            metric_type = MetricType::power;
         }
         else if (metric == "voltage")
         {
-            auto res = metrics.emplace(MetricType::voltage);
-            if (!res.second)
-            {
-                Log::warn() << "Metric " << metric << " has already been added to the channel'"
-                            << config["name"].get<std::string>() << "'. Ignoring.";
-            }
+            metric_type = MetricType::voltage;
         }
         else if (metric == "current")
         {
-            auto res = metrics.emplace(MetricType::current);
-            if (!res.second)
-            {
-                Log::warn() << "Metric " << metric << " has already been added to the channel'"
-                            << config["name"].get<std::string>() << "'. Ignoring.";
-            }
+            metric_type = MetricType::current;
         }
         else
         {
-            raise("Got unknown metric type '", metric, "' for channel ",
+            raise("Got unknown metric type '", metric_string, "' for channel ",
                   config["name"].get<std::string>());
+        }
+
+        std::string bandwidth;
+        std::getline(str, bandwidth);
+
+        MetricBandwidth metric_bandwidth;
+
+        if (bandwidth == "narrow" || bandwidth == "")
+        {
+            metric_bandwidth = MetricBandwidth::narrow;
+        }
+        else if (bandwidth == "wide")
+        {
+            metric_bandwidth = MetricBandwidth::wide;
+        }
+        else
+        {
+            raise("Got unknown bandwidth '", metric_string, "' for channel ",
+                  config["name"].get<std::string>());
+        }
+
+        auto res = metrics.emplace(metric_type, metric_bandwidth);
+        if (!res.second)
+        {
+            Log::warn() << "Metric " << metric_string << " has already been added to the channel'"
+                        << config["name"].get<std::string>() << "'. Ignoring.";
         }
     }
 
     return metrics;
 }
 
-Channel::Channel(Device& device, int id, const std::string& name,
-                 std::set<Channel::MetricType> metrics, Channel::SignalCoupling coupling,
-                 float current_range, float voltage_range)
+Channel::Channel(Device& device, int id, const std::string& name, MetricSetType metrics,
+                 Channel::SignalCoupling coupling, float current_range, float voltage_range)
 : connection_(*(device.connection_)), id_(id), name_(name), metrics_(metrics), coupling_(coupling),
   current_range_(current_range), voltage_range_(voltage_range)
 {
@@ -110,7 +130,7 @@ Channel::Channel(Device& device, int id, const std::string& name,
 
     for (auto metric : metrics_)
     {
-        device.add_track(*this, metric);
+        device.add_track(*this, metric.first, metric.second);
     }
 }
 
@@ -141,7 +161,7 @@ float Channel::voltage_range() const
     return voltage_range_;
 }
 
-const std::set<Channel::MetricType>& Channel::metrics() const
+const Channel::MetricSetType& Channel::metrics() const
 {
     return metrics_;
 }

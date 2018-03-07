@@ -20,13 +20,6 @@ class Device;
 class Channel
 {
 public:
-    enum class MetricType
-    {
-        voltage,
-        current,
-        power
-    };
-
     enum class SignalCoupling : int
     {
         acdc = 0,
@@ -34,12 +27,27 @@ public:
         gnd = 9
     };
 
+    enum class MetricType
+    {
+        voltage,
+        current,
+        power
+    };
+
+    enum class MetricBandwidth : int
+    {
+        narrow = 1,
+        wide = 2
+    };
+
+    using MetricSetType = std::set<std::pair<Channel::MetricType, Channel::MetricBandwidth>>;
+
 private:
     SignalCoupling parse_coupling(const nlohmann::json& json_config);
 
-    std::set<MetricType> parse_metrics(const nlohmann::json& config);
+    MetricSetType parse_metrics(const nlohmann::json& config);
 
-    Channel(Device& device, int id, const std::string& name, std::set<Channel::MetricType> metrics,
+    Channel(Device& device, int id, const std::string& name, MetricSetType metrics,
             Channel::SignalCoupling coupling, float current_range, float voltage_range);
 
 public:
@@ -54,7 +62,7 @@ public:
 
     float voltage_range() const;
 
-    const std::set<MetricType>& metrics() const;
+    const MetricSetType& metrics() const;
 
     int id() const;
 
@@ -62,7 +70,7 @@ private:
     network::Connection& connection_;
     int id_;
     std::string name_;
-    std::set<MetricType> metrics_;
+    MetricSetType metrics_;
     SignalCoupling coupling_;
     float current_range_;
     float voltage_range_;

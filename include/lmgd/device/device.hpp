@@ -32,7 +32,8 @@ public:
     const std::vector<std::string>& get_tracks() const;
 
 private:
-    void add_track(const Channel& channel, Channel::MetricType type);
+    void add_track(const Channel& channel, Channel::MetricType type,
+                   Channel::MetricBandwidth bandwidth);
 
     friend class Channel;
 

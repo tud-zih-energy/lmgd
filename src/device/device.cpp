@@ -39,7 +39,11 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
 
     // set grouping -> all channels in one group
     // TODO this explodes if not all channels are used :(
-    assert(channels_.size() == 6);
+    if (channels_.size() != 6)
+    {
+        // XXX Thomas, DO NOT comment that out, because it will mess up grouping. Fix the config!
+        raise("This device has exactly 6 channels, but ", channels_.size(), " are configured.");
+    }
     connection_->check_command("GROUP " + std::to_string(channels_.size()));
 
     // set sampling rate
@@ -104,32 +108,38 @@ void Device::stop_recording()
     recording_ = false;
 }
 
-void Device::add_track(const Channel& channel, Channel::MetricType type)
+void Device::add_track(const Channel& channel, Channel::MetricType type,
+                       Channel::MetricBandwidth bandwidth)
 {
 
-    auto glctrac = [this](int track_id, int phase, char type) {
+    auto send_glctrac = [this, bandwidth](int track_id, int phase, char type) {
         this->connection_->check_command("GLCTRAC " + std::to_string(track_id) + ", \"" + type +
-                                         "1" + std::to_string(phase) + "21\"");
+                                         "1" + std::to_string(phase) +
+                                         std::to_string(int(bandwidth)) + "1\"");
     };
+
+    auto bw = [bandwidth]() { return bandwidth == Channel::MetricBandwidth::wide ? ".wide" : ""; };
 
     switch (type)
     {
     case Channel::MetricType::voltage:
-        glctrac(tracks_.size(), channel.id(), 'U');
-        tracks_.push_back(channel.name() + ".voltage");
+        send_glctrac(tracks_.size(), channel.id(), 'U');
+        tracks_.push_back(channel.name() + ".voltage" + bw());
 
         break;
     case Channel::MetricType::current:
-        glctrac(tracks_.size(), channel.id(), 'I');
-        tracks_.push_back(channel.name() + ".current");
+        send_glctrac(tracks_.size(), channel.id(), 'I');
+        tracks_.push_back(channel.name() + ".current" + bw());
         break;
     case Channel::MetricType::power:
-        glctrac(tracks_.size(), channel.id(), 'P');
-        tracks_.push_back(channel.name() + ".power");
+        send_glctrac(tracks_.size(), channel.id(), 'P');
+        tracks_.push_back(channel.name() + ".power" + bw());
         break;
     default:
         raise("WHUUUUUT. HALP. I'M TRAPPED HERE.");
     }
+
+    Log::info() << "Added a new track: " << tracks_.back();
 }
 
 const std::vector<std::string>& Device::get_tracks() const
