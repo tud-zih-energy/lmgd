@@ -60,9 +60,11 @@ void Source::setup_device()
 
     for (auto& track : device_->get_tracks())
     {
-        auto& source_metric = (*this)[track];
+        auto& source_metric = (*this)[track.name()];
+        Log::info() << "Add metric to recording: " << track.name();
         source_metric.enable_chunking(config_["measurement"]["chunking"].get<int>());
-        metrics_.push_back(std::ref(source_metric));
+        // TODO set max_repeats dependent to sampling rate
+        metrics_.emplace_back(track, source_metric);
     }
 
     device_->start_recording();
@@ -96,8 +98,7 @@ void Source::setup_device()
             for (auto entry : nitro::lang::enumerate(list))
             {
                 auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
-                metric.get().send(
-                    { dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value() });
+                metric.send(dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value());
             }
         }
         return network::CallbackResult::repeat;

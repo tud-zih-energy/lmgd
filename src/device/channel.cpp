@@ -6,13 +6,13 @@
 
 namespace lmgd::device
 {
-Channel::SignalCoupling Channel::parse_coupling(const nlohmann::json& json_config)
+ChannelSignalCoupling Channel::parse_coupling(const nlohmann::json& json_config)
 {
     auto config = json_config["coupling"].get<std::string>();
 
     if (config == "ACDC" || config == "acdc")
     {
-        return SignalCoupling::acdc;
+        return ChannelSignalCoupling::acdc;
     }
     else if (config == "AC" || config == "ac")
     {
@@ -88,7 +88,7 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config)
         auto res = metrics.emplace(metric_type, metric_bandwidth);
         if (!res.second)
         {
-            Log::warn() << "Metric " << metric_string << " has already been added to the channel'"
+            Log::warn() << "Metric " << metric_string << " has already been added to the channel '"
                         << config["name"].get<std::string>() << "'. Ignoring.";
         }
     }
@@ -97,7 +97,7 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config)
 }
 
 Channel::Channel(Device& device, int id, const std::string& name, MetricSetType metrics,
-                 Channel::SignalCoupling coupling, float current_range, float voltage_range)
+                 ChannelSignalCoupling coupling, float current_range, float voltage_range)
 : connection_(*(device.connection_)), id_(id), name_(name), metrics_(metrics), coupling_(coupling),
   current_range_(current_range), voltage_range_(voltage_range)
 {
@@ -146,7 +146,7 @@ const std::string& Channel::name() const
     return name_;
 }
 
-Channel::SignalCoupling Channel::coupling() const
+ChannelSignalCoupling Channel::coupling() const
 {
     return coupling_;
 }

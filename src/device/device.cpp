@@ -11,6 +11,7 @@
 #include <nitro/lang/enumerate.hpp>
 
 #include <cassert>
+#include <sstream>
 #include <string>
 
 namespace lmgd::device
@@ -32,18 +33,41 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
     // just in case...
     connection_->send_command("CONT OFF");
 
+    // read number of available channels on device
+    std::size_t num_channels = 0;
+    {
+        connection_->send_command("GROUP?");
+        auto grouping = connection_->read_ascii();
+
+        std::stringstream str;
+        str << grouping;
+
+        std::string group;
+
+        while (std::getline(str, group, ','))
+        {
+            num_channels += std::stoll(group);
+        }
+    }
+    Log::info() << "Number of available device channels: " << num_channels;
+    channels_.reserve(num_channels);
+
     for (auto channel : nitro::lang::enumerate(config["channels"]))
     {
         channels_.emplace_back(*this, channel.index() + 1, channel.value());
     }
 
-    // set grouping -> all channels in one group
-    // TODO this explodes if not all channels are used :(
-    if (channels_.size() != 6)
+    // check if number of channels match with what the device says
+    if (channels_.size() != num_channels)
     {
-        // XXX Thomas, DO NOT comment that out, because it will mess up grouping. Fix the config!
-        raise("This device has exactly 6 channels, but ", channels_.size(), " are configured.");
+        // Thomas, DO NOT comment that out, because it will mess up grouping. Fix the fucking
+        // config! lmgd::device::Track also assumes exactly one group. Keep it alone.
+        raise("This device has exactly ", num_channels, " channels, but ", channels_.size(),
+              " are configured.");
     }
+
+    // set grouping -> all channels in one group
+    // this is technically equivalent to "GROUP {num_channels}"
     connection_->check_command("GROUP " + std::to_string(channels_.size()));
 
     // set sampling rate
@@ -108,41 +132,14 @@ void Device::stop_recording()
     recording_ = false;
 }
 
-void Device::add_track(const Channel& channel, Channel::MetricType type,
-                       Channel::MetricBandwidth bandwidth)
+void Device::add_track(const Channel& channel, MetricType type, MetricBandwidth bandwidth)
 {
-
-    auto send_glctrac = [this, bandwidth](int track_id, int phase, char type) {
-        this->connection_->check_command("GLCTRAC " + std::to_string(track_id) + ", \"" + type +
-                                         "1" + std::to_string(phase) +
-                                         std::to_string(int(bandwidth)) + "1\"");
-    };
-
-    auto bw = [bandwidth]() { return bandwidth == Channel::MetricBandwidth::wide ? ".wide" : ""; };
-
-    switch (type)
-    {
-    case Channel::MetricType::voltage:
-        send_glctrac(tracks_.size(), channel.id(), 'U');
-        tracks_.push_back(channel.name() + ".voltage" + bw());
-
-        break;
-    case Channel::MetricType::current:
-        send_glctrac(tracks_.size(), channel.id(), 'I');
-        tracks_.push_back(channel.name() + ".current" + bw());
-        break;
-    case Channel::MetricType::power:
-        send_glctrac(tracks_.size(), channel.id(), 'P');
-        tracks_.push_back(channel.name() + ".power" + bw());
-        break;
-    default:
-        raise("WHUUUUUT. HALP. I'M TRAPPED HERE.");
-    }
-
-    Log::info() << "Added a new track: " << tracks_.back();
+    // track ids start at 1
+    tracks_.emplace_back(channel, tracks_.size() + 1, type, bandwidth);
+    connection_->check_command(tracks_.back().get_glctrac_command());
 }
 
-const std::vector<std::string>& Device::get_tracks() const
+const std::vector<Track>& Device::get_tracks() const
 {
     return tracks_;
 }

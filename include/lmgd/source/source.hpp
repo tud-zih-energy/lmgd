@@ -1,5 +1,7 @@
 #pragma once
 
+#include <lmgd/source/metric.hpp>
+
 #include <dataheap2/source.hpp>
 #include <dataheap2/timer.hpp>
 
@@ -36,7 +38,7 @@ private:
     asio::signal_set signals_;
     dataheap2::Timer timer_;
     std::unique_ptr<lmgd::device::Device> device_;
-    std::vector<std::reference_wrapper<dataheap2::SourceMetric>> metrics_;
+    std::vector<Metric> metrics_;
     nlohmann::json config_;
     std::atomic<bool> stop_requested_ = false;
 };

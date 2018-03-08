@@ -18,6 +18,7 @@ set(SOURCE_FILES
 
     src/source/source.cpp
 
+    src/device/track.cpp
     src/device/device.cpp
     src/device/channel.cpp
 )
