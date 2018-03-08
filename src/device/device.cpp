@@ -137,8 +137,12 @@ void Device::stop_recording()
 
 void Device::add_track(const Channel& channel, MetricType type, MetricBandwidth bandwidth)
 {
-    // track ids start at 1
-    tracks_.emplace_back(channel, tracks_.size() + 1, type, bandwidth);
+    if (tracks_.size() >= 16)
+    {
+        raise("Trying to add more than 16 tracks, which is not supported.");
+    }
+
+    tracks_.emplace_back(channel, tracks_.size(), type, bandwidth);
     connection_->check_command(tracks_.back().get_glctrac_command());
 }
 

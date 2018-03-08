@@ -27,7 +27,6 @@ public:
 private:
     const Channel& channel_;
 
-    // the track id of the device. (These start at 1)
     int id_;
 
     MetricType type_;

@@ -11,7 +11,7 @@ class Metric
 {
 public:
     Metric(const device::Track& track, dataheap2::SourceMetric& metric, int max_repeats = 8)
-    : metric_(metric), bandwidth_(track.bandwidth())
+    : metric_(metric), bandwidth_(track.bandwidth()), max_repeats_(max_repeats)
     {
     }
 
