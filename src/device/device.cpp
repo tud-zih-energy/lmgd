@@ -70,6 +70,9 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
     // this is technically equivalent to "GROUP {num_channels}"
     connection_->check_command("GROUP " + std::to_string(channels_.size()));
 
+    // enable DualPath mode, so we can record metrics narrow and wide at the same time
+    connection_->check_command("PROC 1");
+
     // set sampling rate
     connection_->check_command("GLCSR " +
                                std::to_string(config["measurement"]["sampling_rate"].get<int>()));
