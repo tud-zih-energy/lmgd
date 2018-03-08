@@ -24,17 +24,19 @@ public:
             return;
         }
 
-        if (repeat_++ == 0)
+        if (repeat_ == 0)
         {
             last_value_ = value;
             metric_.send({ tp, value });
         }
+
+        if (value == last_value_ && repeat_ < max_repeats_)
+        {
+            ++repeat_;
+        }
         else
         {
-            if (value != last_value_ || repeat_ == max_repeats_)
-            {
-                repeat_ = 0;
-            }
+            repeat_ = 0;
         }
     }
 
