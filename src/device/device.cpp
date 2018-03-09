@@ -8,6 +8,7 @@
 
 #include <dataheap2/source_metric.hpp>
 
+#include <nitro/jiffy/jiffy.hpp>
 #include <nitro/lang/enumerate.hpp>
 
 #include <cassert>
@@ -33,6 +34,21 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
     // just in case...
     connection_->send_command("CONT OFF");
 
+    // check timestamps
+    {
+        connection_->send_command("SYSDATE?");
+        auto old_device_time = connection_->read_ascii();
+
+        auto now = nitro::jiffy::Jiffy();
+        connection_->check_command("SYSDATE " + now.format("%Y:%m:%dD%H:%M:%S.%f"));
+
+        connection_->send_command("SYSDATE?");
+        auto new_device_time = connection_->read_ascii();
+
+        Log::info() << "Adjusting device clock: (local) " << now << ", (old) " << old_device_time
+                    << ", (new) " << new_device_time;
+    }
+
     // read number of available channels on device
     std::size_t num_channels = 0;
     {
@@ -50,7 +66,9 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
         }
     }
     Log::info() << "Number of available device channels: " << num_channels;
-    channels_.reserve(num_channels);
+    // we need this, so the vector won't reallocate, which would invalidate the references in Track
+    // instances.
+    channels_.reserve(std::max(config["channels"].size(), num_channels));
 
     for (auto channel : nitro::lang::enumerate(config["channels"]))
     {
