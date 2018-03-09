@@ -11,8 +11,9 @@
 namespace lmgd::source
 {
 
-Source::Source(const std::string& server, const std::string& token)
-: dataheap2::Source(token), signals_(io_service, SIGINT, SIGTERM), timer_(io_service)
+Source::Source(const std::string& server, const std::string& token, bool drop_data)
+: dataheap2::Source(token), signals_(io_service, SIGINT, SIGTERM), timer_(io_service),
+  drop_data_(drop_data)
 {
     Log::debug() << "Called lmgd::Source::Source()";
 
@@ -85,6 +86,11 @@ void Source::setup_device()
                 this->setup_device();
             }
             return network::CallbackResult::cancel;
+        }
+
+        if (this->drop_data_)
+        {
+            return network::CallbackResult::repeat;
         }
 
         auto cycle_start = data->read_date();

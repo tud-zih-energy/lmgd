@@ -24,7 +24,7 @@ namespace lmgd::source
 class Source : public dataheap2::Source
 {
 public:
-    Source(const std::string& server, const std::string& token);
+    Source(const std::string& server, const std::string& token, bool drop_data);
     ~Source();
 
     void source_config_callback(const nlohmann::json& config) override;
@@ -41,6 +41,7 @@ private:
     std::vector<Metric> metrics_;
     nlohmann::json config_;
     std::atomic<bool> stop_requested_ = false;
+    bool drop_data_;
 };
 
 } // namespace lmgd::source

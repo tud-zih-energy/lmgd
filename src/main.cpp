@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
     parser.toggle("help").short_name("h");
     parser.toggle("debug").short_name("d");
     parser.toggle("trace").short_name("t");
+    parser.toggle("drop-data").short_name("x");
 
     try
     {
@@ -48,7 +49,8 @@ int main(int argc, char* argv[])
             return 0;
         }
 
-        lmgd::source::Source source(options.get("server"), options.get("token"));
+        lmgd::source::Source source(options.get("server"), options.get("token"),
+                                    options.given("drop-data"));
 
         source.main_loop();
     }
