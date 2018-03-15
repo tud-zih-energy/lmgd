@@ -73,7 +73,11 @@ void Source::setup_device()
         Log::trace() << "Called completion_callback: " << data->size();
         if (data->size() == 1)
         {
-            assert(data->read_char() == '1');
+            char c = data->read_char();
+            if (c != '1')
+            {
+                Log::error() << "Unexpected single char '" << c << "' (" << static_cast<int>(c) << ")";
+            }
 
             if (stop_requested_)
             {
