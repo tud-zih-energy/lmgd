@@ -40,6 +40,11 @@ public:
         }
     }
 
+    void flush()
+    {
+        metric_.flush();
+    }
+
 private:
     dataheap2::SourceMetric& metric_;
 

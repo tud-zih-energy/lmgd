@@ -63,7 +63,7 @@ void Source::setup_device()
     {
         auto& source_metric = (*this)[track.name()];
         Log::info() << "Add metric to recording: " << track.name();
-        source_metric.enable_chunking(config_["measurement"]["chunking"].get<int>());
+        source_metric.set_chunksize(0);
         // TODO set max_repeats dependent to sampling rate
         metrics_.emplace_back(track, source_metric);
     }
@@ -110,6 +110,7 @@ void Source::setup_device()
                 auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
                 metric.send(dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value());
             }
+            metric.flush();
         }
         return network::CallbackResult::repeat;
     });
