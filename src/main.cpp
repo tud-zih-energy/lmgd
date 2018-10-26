@@ -16,11 +16,11 @@ int main(int argc, char* argv[])
 {
     nitro::broken_options::parser parser("lmgd");
 
-    parser.option("server", "The dataheap2 management server to connect to.")
+    parser.option("server", "The metricq management server to connect to.")
         .default_value("amqp://localhost")
         .short_name("s");
     parser.option("token",
-                  "The token used for source authentification against the dataheap2 manager.");
+                  "The token used for source authentification against the metricq manager.");
     parser.toggle("help").short_name("h");
     parser.toggle("debug").short_name("d");
     parser.toggle("trace").short_name("t");

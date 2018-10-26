@@ -2,8 +2,8 @@
 
 #include <lmgd/source/metric.hpp>
 
-#include <dataheap2/source.hpp>
-#include <dataheap2/timer.hpp>
+#include <metricq/source.hpp>
+#include <metricq/timer.hpp>
 
 #include <asio/basic_waitable_timer.hpp>
 #include <asio/signal_set.hpp>
@@ -21,7 +21,7 @@ class Device;
 namespace lmgd::source
 {
 
-class Source : public dataheap2::Source
+class Source : public metricq::Source
 {
 public:
     Source(const std::string& server, const std::string& token, bool drop_data);
@@ -36,7 +36,7 @@ private:
 private:
     std::mutex config_mutex_;
     asio::signal_set signals_;
-    dataheap2::Timer timer_;
+    metricq::Timer timer_;
     std::unique_ptr<lmgd::device::Device> device_;
     std::vector<Metric> metrics_;
     nlohmann::json config_;

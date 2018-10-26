@@ -28,9 +28,10 @@ target_compile_features(lmgd PUBLIC cxx_std_17)
 target_link_libraries(lmgd
     PRIVATE
         asio
-        Nitro::nitro-log
-        Nitro::nitro-jiffy
-        dataheap2::source
+        Nitro::log
+        Nitro::jiffy
+        metricq::source
+        json::json
 )
 target_include_directories(lmgd PUBLIC include)
 target_compile_options(lmgd PUBLIC $<$<CONFIG:Debug>:-Wall -pedantic -Wextra>)
@@ -38,7 +39,7 @@ target_compile_options(lmgd PUBLIC $<$<CONFIG:Debug>:-Wall -pedantic -Wextra>)
 
 add_executable(ilmg src/interactive.cpp src/network/socket.cpp src/network/connection.cpp)
 target_compile_features(ilmg PUBLIC cxx_std_17)
-target_link_libraries(ilmg PRIVATE asio pthread Nitro::nitro-log Nitro::nitro-jiffy)
+target_link_libraries(ilmg PRIVATE asio pthread Nitro::log Nitro::jiffy)
 target_include_directories(ilmg PUBLIC include)
 
 if(BUILD_SCOREP_PLUGIN)
@@ -48,7 +49,7 @@ if(BUILD_SCOREP_PLUGIN)
         PRIVATE
             Scorep::scorep-plugin-cxx
             asio
-            Nitro::nitro-jiffy
+            Nitro::jiffy
     )
     target_include_directories(lmg_plugin PUBLIC include)
 endif()

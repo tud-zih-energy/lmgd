@@ -8,4 +8,4 @@ if(BUILD_SCOREP_PLUGIN)
     add_subdirectory(scorep_plugin_cxx_wrapper)
 endif()
 
-add_subdirectory(dataheap2)
+add_subdirectory(metricq)

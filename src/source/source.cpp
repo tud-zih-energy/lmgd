@@ -12,7 +12,7 @@ namespace lmgd::source
 {
 
 Source::Source(const std::string& server, const std::string& token, bool drop_data)
-: dataheap2::Source(token), signals_(io_service, SIGINT, SIGTERM), timer_(io_service),
+: metricq::Source(token), signals_(io_service, SIGINT, SIGTERM), timer_(io_service),
   drop_data_(drop_data)
 {
     Log::debug() << "Called lmgd::Source::Source()";
@@ -76,7 +76,8 @@ void Source::setup_device()
             char c = data->read_char();
             if (c != '1')
             {
-                Log::error() << "Unexpected single char '" << c << "' (" << static_cast<int>(c) << ")";
+                Log::error() << "Unexpected single char '" << c << "' (" << static_cast<int>(c)
+                             << ")";
             }
 
             if (stop_requested_)
@@ -108,7 +109,7 @@ void Source::setup_device()
             for (auto entry : nitro::lang::enumerate(list))
             {
                 auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
-                metric.send(dataheap2::TimePoint(time_ns.time_since_epoch()), entry.value());
+                metric.send(metricq::TimePoint(time_ns.time_since_epoch()), entry.value());
             }
             metric.flush();
         }

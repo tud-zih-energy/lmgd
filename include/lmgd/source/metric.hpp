@@ -3,20 +3,20 @@
 #include <lmgd/device/track.hpp>
 #include <lmgd/device/types.hpp>
 
-#include <dataheap2/source_metric.hpp>
+#include <metricq/source_metric.hpp>
 
 namespace lmgd::source
 {
 class Metric
 {
 public:
-    Metric(const device::Track& track, dataheap2::SourceMetric& metric, int max_repeats = 8)
+    Metric(const device::Track& track, metricq::SourceMetric& metric, int max_repeats = 8)
     : metric_(metric), bandwidth_(track.bandwidth()), max_repeats_(max_repeats)
     {
     }
 
 public:
-    void send(dataheap2::TimePoint tp, float value)
+    void send(metricq::TimePoint tp, float value)
     {
         if (device::MetricBandwidth::wide == bandwidth_)
         {
@@ -46,7 +46,7 @@ public:
     }
 
 private:
-    dataheap2::SourceMetric& metric_;
+    metricq::SourceMetric& metric_;
 
     device::MetricBandwidth bandwidth_;
 
