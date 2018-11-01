@@ -27,7 +27,7 @@ public:
 private:
     ChannelSignalCoupling parse_coupling(const nlohmann::json& json_config);
 
-    MetricSetType parse_metrics(const nlohmann::json& config);
+    MetricSetType parse_metrics(const nlohmann::json& config, MeasurementMode mode);
 
     Channel(Device& device, int id, const std::string& name, MetricSetType metrics,
             ChannelSignalCoupling coupling, float current_range, float voltage_range);

@@ -1,6 +1,7 @@
 #include <lmgd/network/connection.hpp>
 
-#include <lmgd/network/socket.hpp>
+#include <lmgd/network/network_socket.hpp>
+#include <lmgd/network/serial_socket.hpp>
 
 #include <lmgd/except.hpp>
 #include <lmgd/log.hpp>
@@ -14,9 +15,14 @@
 namespace lmgd::network
 {
 
-Connection::Connection(asio::io_service& io_service, const std::string& hostname)
-: io_service_(io_service), hostname_(hostname)
+Connection::Connection(asio::io_service& io_service, Type type, const std::string& hostname)
+: io_service_(io_service), type_(type), hostname_(hostname)
 {
+    if (type_ == Type::serial)
+    {
+        socket_ = std::make_unique<lmgd::network::SerialSocket>(io_service_, hostname_);
+    }
+
     reset();
     start();
 }
@@ -31,14 +37,24 @@ Connection::~Connection()
 
 void Connection::start()
 {
-    socket_ = std::make_unique<lmgd::network::Socket>(io_service_, hostname_, 5025);
+    if (!socket_)
+    {
+        if (type_ == Type::socket)
+        {
+            socket_ = std::make_unique<lmgd::network::NetworkSocket>(io_service_, hostname_, 5025);
+        }
+        else
+        {
+            socket_ = std::make_unique<lmgd::network::SerialSocket>(io_service_, hostname_);
+        }
+    }
 
     send_command("*rst");
     send_command("*idn?");
 
     Log::info() << "Device: " << read_ascii();
 
-    send_command("*zlang short");
+    // send_command("*zlang short");
 }
 
 void Connection::stop()
@@ -54,17 +70,23 @@ void Connection::reset()
 {
     Log::trace() << "Sending reset to device...";
 
-    lmgd::network::Socket socket(io_service_, hostname_, 5026);
-
-    socket << "break\n";
-
-    std::string line = socket.read_line();
-
-    Log::trace() << "Result: " << line;
-
-    if (line[0] != '0')
+    if (type_ == Type::serial)
     {
-        raise("Reset of interface failed: ", line);
+        assert(socket_);
+
+        dynamic_cast<lmgd::network::SerialSocket*>(socket_.get())->asio_socket().send_break();
+    }
+    else
+    {
+        lmgd::network::NetworkSocket socket(io_service_, hostname_, 5026);
+
+        socket << "break\n";
+        std::string line = socket.read_line();
+        Log::trace() << "Result: " << line;
+        if (line[0] != '0')
+        {
+            raise("Reset of interface failed: ", line);
+        }
     }
 }
 
@@ -75,7 +97,7 @@ Connection::Mode Connection::mode() const
 
 void Connection::mode(Connection::Mode mode)
 {
-    send_command("FRMT " + std::to_string(static_cast<int>(mode)));
+    send_command(":FORM:DATA " + std::to_string(static_cast<int>(mode)));
     mode_ = mode;
 }
 
@@ -91,7 +113,7 @@ void Connection::check_command(std::string cmd)
     {
         cmd += ";";
     }
-    cmd += "ERRALL?";
+    cmd += ":SYST:ERR:ALL?";
 
     send_command(cmd);
 
@@ -136,15 +158,16 @@ BinaryData Connection::read_binary(size_t reserved_size)
     return data;
 }
 
-void Connection::read_binary_async(Connection::Callback callback)
+void Connection::read_binary_async(BinaryCallback callback)
 {
     assert(mode_ == Mode::binary);
-    assert(!binary_line_reader_);
-    assert(socket_->asio_buffer().size() == 0);
+    socket_->read_binary_async(callback);
+}
 
-    binary_line_reader_ = std::make_unique<AsyncBinaryLineReader<Connection::Callback>>(
-        socket_->asio_socket(), callback);
-    binary_line_reader_->read();
+void Connection::read_async(Callback callback)
+{
+    assert(mode_ == Mode::ascii);
+    socket_->read_async(callback);
 }
 
 std::vector<char> Connection::read_binary_raw()

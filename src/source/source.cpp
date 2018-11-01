@@ -1,8 +1,9 @@
 #include <lmgd/source/source.hpp>
 
 #include <lmgd/device/device.hpp>
-
 #include <lmgd/log.hpp>
+
+#include <metricq/ostream.hpp>
 
 #include <nitro/lang/enumerate.hpp>
 
@@ -68,8 +69,9 @@ void Source::setup_device()
         metrics_.emplace_back(track, source_metric);
     }
 
-    device_->start_recording();
-    device_->fetch_data([this](auto& data) {
+    device_->start_recording(lmgd::network::Connection::Mode::binary);
+
+    device_->fetch_binary_data([this](auto& data) {
         Log::trace() << "Called completion_callback: " << data->size();
         if (data->size() == 1)
         {
@@ -98,20 +100,32 @@ void Source::setup_device()
             return network::CallbackResult::repeat;
         }
 
-        auto cycle_start = data->read_date();
-        auto cycle_duration = data->read_time();
-
-        for (auto& metric : this->metrics_)
+        if (device_->measurement_mode() == device::MeasurementMode::gapless)
         {
+            auto cycle_start = data->read_date();
+            auto cycle_duration = data->read_time();
 
-            auto list = data->read_float_list();
-
-            for (auto entry : nitro::lang::enumerate(list))
+            for (auto& metric : this->metrics_)
             {
-                auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
-                metric.send(metricq::TimePoint(time_ns.time_since_epoch()), entry.value());
+
+                auto list = data->read_float_list();
+
+                for (auto entry : nitro::lang::enumerate(list))
+                {
+                    auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
+                    metric.send(metricq::TimePoint(time_ns.time_since_epoch()), entry.value());
+                }
+                metric.flush();
             }
-            metric.flush();
+        }
+        else
+        {
+            auto now = metricq::Clock::now();
+            for (auto& metric : this->metrics_)
+            {
+                metric.send(now, data->read_float());
+                metric.flush();
+            }
         }
         return network::CallbackResult::repeat;
     });

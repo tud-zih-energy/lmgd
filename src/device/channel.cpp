@@ -16,7 +16,7 @@ ChannelSignalCoupling Channel::parse_coupling(const nlohmann::json& json_config)
     }
     else if (config == "AC" || config == "ac")
     {
-        raise("AC coupling not implemented yet.");
+        return ChannelSignalCoupling::ac;
     }
     else if (config == "GND" || config == "gnd")
     {
@@ -27,7 +27,7 @@ ChannelSignalCoupling Channel::parse_coupling(const nlohmann::json& json_config)
           " for channel: ", json_config["name"].get<std::string>());
 }
 
-Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config)
+Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, MeasurementMode mode)
 {
     if (config["metrics"].size() == 0)
     {
@@ -71,7 +71,18 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config)
 
         MetricBandwidth metric_bandwidth;
 
-        if (bandwidth == "narrow" || bandwidth == "")
+        if (bandwidth == "")
+        {
+            if (mode == MeasurementMode::gapless)
+            {
+                metric_bandwidth = MetricBandwidth::narrow;
+            }
+            else
+            {
+                metric_bandwidth = MetricBandwidth::cycle;
+            }
+        }
+        else if (bandwidth == "narrow")
         {
             metric_bandwidth = MetricBandwidth::narrow;
         }
@@ -103,30 +114,32 @@ Channel::Channel(Device& device, int id, const std::string& name, MetricSetType 
 {
     // setup channel on lmg device
 
+    // we have to trust config to provide valid channels
     // first, check if the channel exists
-    connection_.send_command("CTYP" + std::to_string(id_) + "?");
-
-    assert(0 < id_ && id_ < 8);
+    // connection_.send_command("CTYP" + std::to_string(id_) + "?");
+    // assert(0 < id_ && id_ < 8);
     // TODO this can hang, if the suffix id_ is invalid.
     // (in case of LMG670, valid ids are: 0 < id_ < 8)
-    auto channel_type = connection_.read_ascii();
+    // auto channel_type = connection_.read_ascii();
 
-    if (channel_type == "\"\"")
-    {
-        raise("Can't configure invalid LMG device channel ", id_);
-    }
-    Log::info() << "Device channel " << id_ << " is a " << channel_type;
+    // if (channel_type == "\"\"")
+    // {
+    //     raise("Can't configure invalid LMG device channel ", id_);
+    // }
+    // Log::info() << "Device channel " << id_ << " is a " << channel_type;
 
     connection_.check_command();
 
-    connection_.check_command("SCPL" + std::to_string(id_) + " " +
+    connection_.check_command(":INP:COUP" + std::to_string(id_) + " " +
                               std::to_string(static_cast<int>(coupling_)));
 
-    connection_.check_command("IAUTO" + std::to_string(id_) + " 0");
-    connection_.check_command("IRNG" + std::to_string(id_) + " " + std::to_string(current_range_));
+    connection_.check_command(":SENS:CURR:RANG:AUTO" + std::to_string(id_) + " 0");
+    connection_.check_command(":SENS:CURR:RANG" + std::to_string(id_) + " " +
+                              std::to_string(current_range_));
 
-    connection_.check_command("UAUTO" + std::to_string(id_) + " 0");
-    connection_.check_command("URNG" + std::to_string(id_) + " " + std::to_string(voltage_range_));
+    connection_.check_command(":SENS:VOLT:RANG:AUTO" + std::to_string(id_) + " 0");
+    connection_.check_command(":SENS:VOLT:RANG" + std::to_string(id_) + " " +
+                              std::to_string(voltage_range_));
 
     for (auto metric : metrics_)
     {
@@ -135,9 +148,9 @@ Channel::Channel(Device& device, int id, const std::string& name, MetricSetType 
 }
 
 Channel::Channel(device::Device& device, int id, const nlohmann::json& config)
-: Channel(device, id, config["name"].get<std::string>(), parse_metrics(config),
-          parse_coupling(config), config["current_range"].get<float>(),
-          config["voltage_range"].get<double>())
+: Channel(device, id, config["name"].get<std::string>(),
+          parse_metrics(config, device.measurement_mode()), parse_coupling(config),
+          config["current_range"].get<float>(), config["voltage_range"].get<double>())
 {
 }
 

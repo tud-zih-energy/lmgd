@@ -2,12 +2,15 @@
     "measurement":
     {
         "filter": "",
-        "samping_rate": 50000,
+        "sampling_rate": 50000,
         "device":
         {
+            "serial": "00301409",
             "connection": "socket",
-            "address": "localhost"
-        }
+            "address": "localhost",
+            "num_channels": 6
+        },
+        "mode": "gapless"
     },
     "channels":
     [

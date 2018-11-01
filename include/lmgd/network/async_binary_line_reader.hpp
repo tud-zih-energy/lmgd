@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lmgd/network/callback.hpp>
 #include <lmgd/network/data.hpp>
 
 #include <lmgd/except.hpp>
@@ -7,19 +8,14 @@
 
 #include <asio/buffer.hpp>
 #include <asio/completion_condition.hpp>
-#include <asio/ip/tcp.hpp>
 #include <asio/read.hpp>
+#include <asio/serial_port.hpp>
 
 #include <memory>
 #include <string>
 
 namespace lmgd::network
 {
-enum class CallbackResult
-{
-    repeat,
-    cancel
-};
 
 template <typename CB>
 struct Checker
@@ -39,11 +35,11 @@ private:
     size_t bytes_expected;
 };
 
-template <typename CB>
+template <typename Socket, typename CB>
 class AsyncBinaryLineReader
 {
 public:
-    AsyncBinaryLineReader(asio::ip::tcp::socket& socket, CB completion_callback)
+    AsyncBinaryLineReader(Socket& socket, CB completion_callback)
     : socket(socket), completion_callback(completion_callback)
     {
     }
@@ -118,7 +114,7 @@ private:
 private:
     std::shared_ptr<BinaryData> data;
 
-    asio::ip::tcp::socket& socket;
+    Socket& socket;
     CB completion_callback;
 
     char marker;

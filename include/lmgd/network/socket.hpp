@@ -1,9 +1,8 @@
 #pragma once
 
-#include <lmgd/log.hpp>
+#include <lmgd/network/callback.hpp>
 
 #include <asio/io_service.hpp>
-#include <asio/ip/tcp.hpp>
 #include <asio/streambuf.hpp>
 
 #include <chrono>
@@ -21,9 +20,18 @@ namespace network
 
     public:
         Socket() = delete;
-        Socket(asio::io_service& io_service);
-        Socket(asio::io_service& io_service, const std::string& hostname, int port);
+        Socket(asio::io_service& io_service) : io_service_(io_service)
+        {
+        }
 
+        Socket(Socket&) = delete;
+        void operator=(Socket&) = delete;
+
+        virtual ~Socket()
+        {
+        }
+
+    public:
         template <typename T>
         void write(const T& data)
         {
@@ -57,37 +65,30 @@ namespace network
             data = std::string(tmp.begin(), tmp.end());
         }
 
-        std::string read_line(char delim = '\n');
-
-        void read(std::byte* data, std::size_t bytes);
-
-        void write(const std::byte* data, std::size_t bytes);
-
-        void open(const std::string& host, int port);
-
-        // After calling this function calls to read or write are not allowed anymore
-        void close();
-
-        bool is_open() const;
-
-        Socket(Socket&) = delete;
-        void operator=(Socket&) = delete;
-
-        ~Socket();
-
-        asio::ip::tcp::socket& asio_socket()
-        {
-            return socket_;
-        }
-
         asio::streambuf& asio_buffer()
         {
             return recv_buffer_;
         }
 
-    private:
+    public:
+        virtual std::string read_line(char delim = '\n') = 0;
+
+        virtual void read(std::byte* data, std::size_t bytes) = 0;
+
+        virtual void write(const std::byte* data, std::size_t bytes) = 0;
+
+        virtual void open(const std::string& host, int port) = 0;
+
+        // After calling this function calls to read or write are not allowed anymore
+        virtual void close() = 0;
+
+        virtual bool is_open() const = 0;
+
+        virtual void read_binary_async(BinaryCallback callback) = 0;
+        virtual void read_async(Callback callback) = 0;
+
+    protected:
         asio::io_service& io_service_;
-        asio::ip::tcp::socket socket_;
         asio::streambuf recv_buffer_;
     };
 
