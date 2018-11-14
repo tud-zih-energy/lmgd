@@ -27,8 +27,8 @@ public:
     Source(const std::string& server, const std::string& token, bool drop_data);
     ~Source();
 
-    void source_config_callback(const nlohmann::json& config) override;
-    void ready_callback() override;
+    void on_source_config(const nlohmann::json& config) override;
+    void on_source_ready() override;
 
 private:
     void setup_device();

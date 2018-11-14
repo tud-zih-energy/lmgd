@@ -3,14 +3,16 @@
 #include <lmgd/device/track.hpp>
 #include <lmgd/device/types.hpp>
 
-#include <metricq/source_metric.hpp>
+#include <metricq/metric.hpp>
+#include <metricq/source.hpp>
 
 namespace lmgd::source
 {
 class Metric
 {
 public:
-    Metric(const device::Track& track, metricq::SourceMetric& metric, int max_repeats = 8)
+    Metric(const device::Track& track, metricq::Metric<metricq::Source>& metric,
+           int max_repeats = 8)
     : metric_(metric), bandwidth_(track.bandwidth()), max_repeats_(max_repeats)
     {
     }
@@ -43,7 +45,7 @@ public:
     }
 
 private:
-    metricq::SourceMetric& metric_;
+    metricq::Metric<metricq::Source>& metric_;
 
     device::MetricBandwidth bandwidth_;
 
