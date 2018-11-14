@@ -49,6 +49,8 @@ int main(int argc, char* argv[])
             return 0;
         }
 
+        lmgd::initialize_logger();
+
         lmgd::source::Source source(options.get("server"), options.get("token"),
                                     options.given("drop-data"));
 

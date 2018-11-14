@@ -18,6 +18,7 @@ set(SOURCE_FILES
     src/network/connection.cpp
 
     src/source/source.cpp
+    src/source/log.cpp
 
     src/device/track.cpp
     src/device/device.cpp

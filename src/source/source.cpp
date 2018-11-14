@@ -39,7 +39,7 @@ Source::Source(const std::string& server, const std::string& token, bool drop_da
 
 void Source::on_source_config(const nlohmann::json& config)
 {
-    Log::debug() << "Called source_config_callback()";
+    Log::debug() << "Called on_source_config()";
     std::lock_guard<std::mutex> lock(config_mutex_);
     config_ = config;
     if (device_)
@@ -47,7 +47,7 @@ void Source::on_source_config(const nlohmann::json& config)
         Log::info() << "Received new config. Restarting requested.";
         device_->stop_recording();
     }
-    Log::debug() << "Finished source_config_callback()";
+    Log::debug() << "Finished on_source_config()";
 }
 
 Source::~Source()
@@ -133,11 +133,10 @@ void Source::setup_device()
 
 void Source::on_source_ready()
 {
-    Log::debug() << "Called ready_callback()";
+    Log::debug() << "Called on_source_ready()";
     setup_device();
-    Log::debug() << "Finished ready_callback()";
-
     declare_metrics();
+    Log::debug() << "Finished on_source_ready()";
 }
 
 } // namespace lmgd::source

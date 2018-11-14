@@ -53,4 +53,7 @@ inline void set_severity_info()
     nitro::log::filter::severity_filter<detail::record>::set_severity(
         nitro::log::severity_level::info);
 }
+
+void initialize_logger();
+
 } // namespace lmgd
