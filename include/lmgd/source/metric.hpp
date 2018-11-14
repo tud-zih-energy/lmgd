@@ -18,16 +18,11 @@ public:
 public:
     void send(metricq::TimePoint tp, float value)
     {
-        if (device::MetricBandwidth::wide == bandwidth_)
+        if (device::MetricBandwidth::wide == bandwidth_ ||
+            device::MetricBandwidth::cycle == bandwidth_)
         {
             metric_.send({ tp, value });
             return;
-        }
-
-        if (repeat_ == 0)
-        {
-            last_value_ = value;
-            metric_.send({ tp, value });
         }
 
         if (value == last_value_ && repeat_ < max_repeats_)
@@ -37,6 +32,8 @@ public:
         else
         {
             repeat_ = 0;
+            last_value_ = value;
+            metric_.send({ tp, value });
         }
     }
 

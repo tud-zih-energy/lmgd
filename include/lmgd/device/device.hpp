@@ -21,14 +21,21 @@ public:
     ~Device();
 
 public:
-    void start_recording();
+    void start_recording(lmgd::network::Connection::Mode mode);
     void stop_recording();
-    void fetch_data(network::Connection::Callback);
+    void fetch_binary_data(network::BinaryCallback);
+    void fetch_data(network::Callback);
 
     const std::vector<Track>& get_tracks() const;
 
+    MeasurementMode measurement_mode() const
+    {
+        return mode_;
+    }
+
 private:
     void add_track(const Channel& channel, MetricType type, MetricBandwidth bandwidth);
+    void check_serial_number(const nlohmann::json& config);
 
     friend class Channel;
 
@@ -38,6 +45,7 @@ private:
     std::unique_ptr<lmgd::network::Connection> connection_;
     std::vector<Channel> channels_;
     std::vector<Track> tracks_;
+    MeasurementMode mode_;
 
     bool recording_;
 

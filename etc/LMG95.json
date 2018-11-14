@@ -1,0 +1,25 @@
+{
+    "measurement":
+    {
+        "filter": "",
+        "sampling_rate": 20,
+        "device":
+        {
+            "serial": "12480812",
+            "connection": "serial",
+            "port": "/dev/ttyUSB0",
+            "num_channels": 1
+        },
+        "mode": "cycle"
+    },
+    "channels":
+    [
+        {
+            "name": "bakha",
+            "coupling": "AC",
+            "voltage_range": 250,
+            "current_range": 1.2,
+            "metrics": ["power"]
+        }
+    ]
+}

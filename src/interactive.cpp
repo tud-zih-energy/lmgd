@@ -1,6 +1,8 @@
 #include <lmgd/log.hpp>
 #include <lmgd/network/connection.hpp>
 
+#include <nitro/broken_options/parser.hpp>
+
 #include <asio/io_service.hpp>
 
 #include <iostream>
@@ -10,19 +12,47 @@ using lmgd::Log;
 
 int main(int argc, char* argv[])
 {
-    lmgd::set_severity_debug();
+    nitro::broken_options::parser parser("ilmg");
 
-    lmgd::Log::info() << "HELO!";
-
-    std::string hostname = "localhost";
-    if (argc > 1)
-        hostname = argv[1];
+    parser.option("port", "The resource to connect to.").short_name("p");
+    parser.toggle("help").short_name("h");
+    parser.toggle("debug").short_name("d");
+    parser.toggle("trace").short_name("t");
+    parser.toggle("serial", "To use serial or network connection").short_name("s");
 
     try
     {
+        auto options = parser.parse(argc, argv);
+
+        if (!options.given("trace"))
+        {
+            if (!options.given("debug"))
+            {
+                lmgd::set_severity_info();
+            }
+            else
+            {
+                lmgd::set_severity_debug();
+            }
+        }
+
+        if (options.given("help"))
+        {
+            parser.usage();
+
+            return 0;
+        }
+
         asio::io_service io_serivce;
 
-        lmgd::network::Connection socket(io_serivce, hostname);
+        auto type = lmgd::network::Connection::Type::socket;
+
+        if (options.given("serial"))
+        {
+            type = lmgd::network::Connection::Type::serial;
+        }
+
+        lmgd::network::Connection socket(io_serivce, type, options.get("port"));
 
         Log::info() << "Connected.";
 
@@ -37,9 +67,17 @@ int main(int argc, char* argv[])
                 std::cout << socket.read_ascii() << std::endl;
             }
 
-            socket.send_command("ERRALL?");
+            socket.send_command(":SYST:ERR:ALL?");
             Log::info() << "errors before: " << socket.read_ascii();
         }
+    }
+    catch (nitro::broken_options::parser_error& e)
+    {
+        lmgd::Log::fatal() << e.what();
+
+        parser.usage();
+
+        return 1;
     }
     catch (std::exception& e)
     {

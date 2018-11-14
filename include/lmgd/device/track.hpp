@@ -15,7 +15,7 @@ public:
     Track(const Channel& channel, int id, MetricType type, MetricBandwidth bandwidth);
 
 public:
-    std::string get_glctrac_command() const;
+    std::string get_action_command(MeasurementMode mode) const;
 
 public:
     const Channel& channel() const;

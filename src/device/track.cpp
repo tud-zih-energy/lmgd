@@ -10,10 +10,35 @@ Track::Track(const Channel& channel, int id, MetricType type, MetricBandwidth ba
 {
 }
 
-std::string Track::get_glctrac_command() const
+std::string Track::get_action_command(MeasurementMode mode) const
 {
-    return "GLCTRAC " + std::to_string(id_) + ", \"" + char(type_) + std::to_string(group_) +
-           std::to_string(phase_) + std::to_string(int(bandwidth_)) + "1\"";
+    if (mode == MeasurementMode::gapless)
+    {
+        return ":SENS:GAPL:TRAC " + std::to_string(id_) + ", \"" + char(type_) +
+               std::to_string(group_) + std::to_string(phase_) + std::to_string(int(bandwidth_)) +
+               "1\"";
+    }
+    else
+    {
+        std::string command = ":FETC";
+
+        switch (type_)
+        {
+        case MetricType::power:
+            command += ":POW";
+            break;
+        case MetricType::current:
+            command += ":CURR";
+            break;
+        case MetricType::voltage:
+            command += ":VOLT";
+            break;
+        }
+
+        command += std::to_string(channel_.id()) + "?";
+
+        return command;
+    }
 }
 
 const Channel& Track::channel() const

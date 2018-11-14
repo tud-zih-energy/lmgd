@@ -63,42 +63,56 @@ public:
         return buffer_->data() + old_size;
     }
 
+private:
+    template <typename T>
+    T read_raw()
+    {
+        static_assert(std::is_pod<T>::value, "This must be a POD.");
+        return *reinterpret_cast<T*>(read(sizeof(T)));
+    }
+
+public:
     char read_char()
     {
-        return *reinterpret_cast<char*>(read(sizeof(char)));
+        return read_raw<char>();
     }
 
     int64_t read_int()
     {
-        return *reinterpret_cast<int64_t*>(read(sizeof(int64_t)));
+        return read_raw<int64_t>();
+    }
+
+    float read_float()
+    {
+        return read_raw<float>();
     }
 
     time::Duration read_time()
     {
-        return time::Duration(read_int());
+        return time::Duration(read_raw<int64_t>());
     }
 
     time::TimePoint read_date()
     {
-        return time::TimePoint(time::Duration(read_int()));
+        return time::TimePoint(time::Duration(read_raw<int64_t>()));
     }
 
     std::string read_string()
     {
-        auto length = read_int();
+        auto length = read_raw<int64_t>();
         return std::string(reinterpret_cast<char*>(read(length)));
     }
 
     BinaryList<int64_t> read_int_list()
     {
-        auto length = read_int();
+        auto length = read_raw<int64_t>();
         // Don't copy, just return a view
         return BinaryList<int64_t>(buffer_, read(length * sizeof(int64_t)), length);
     }
 
     BinaryList<float> read_float_list()
     {
-        auto length = read_int();
+        auto length = read_raw<int64_t>();
         // Don't copy, just return a view
         return BinaryList<float>(buffer_, read(length * sizeof(float)), length);
     }
@@ -107,7 +121,7 @@ public:
     {
         // Can't be bothered to implement efficient stuff
         std::vector<std::string> list;
-        size_t length = read_int();
+        size_t length = read_raw<int64_t>();
         list.reserve(length);
         while (list.size() < length)
         {

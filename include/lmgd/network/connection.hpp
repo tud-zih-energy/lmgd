@@ -1,11 +1,10 @@
 #pragma once
 
-#include <lmgd/network/async_binary_line_reader.hpp>
+#include <lmgd/network/callback.hpp>
 #include <lmgd/network/data.hpp>
 
 #include <asio/io_service.hpp>
 
-#include <functional>
 #include <memory>
 
 namespace lmgd::network
@@ -16,16 +15,19 @@ class Socket;
 class Connection
 {
 public:
-    using Callback =
-        std::function<CallbackResult(std::shared_ptr<BinaryData>&)>;
-
     enum class Mode
     {
         ascii = 0,
         binary = 1
     };
 
-    Connection(asio::io_service& io_service, const std::string& hostname);
+    enum class Type
+    {
+        serial,
+        socket
+    };
+
+    Connection(asio::io_service& io_service, Type type, const std::string& hostname);
 
     ~Connection();
 
@@ -47,7 +49,8 @@ public:
 public:
     BinaryData read_binary(size_t reserved_size = 0);
 
-    void read_binary_async(Callback callback);
+    void read_binary_async(BinaryCallback callback);
+    void read_async(Callback callback);
 
     std::vector<char> read_binary_raw();
 
@@ -55,9 +58,9 @@ public:
 
 private:
     asio::io_service& io_service_;
+    Type type_;
     std::string hostname_;
     std::unique_ptr<lmgd::network::Socket> socket_;
     Mode mode_ = Mode::ascii;
-    std::unique_ptr<AsyncBinaryLineReader<Callback>> binary_line_reader_;
 };
 } // namespace lmgd::network

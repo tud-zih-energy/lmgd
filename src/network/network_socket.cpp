@@ -1,4 +1,4 @@
-#include <lmgd/network/socket.hpp>
+#include <lmgd/network/network_socket.hpp>
 
 #include <lmgd/except.hpp>
 #include <lmgd/log.hpp>
@@ -14,18 +14,14 @@ namespace lmgd
 {
 namespace network
 {
-
-    Socket::Socket(asio::io_service& io_service) : io_service_(io_service), socket_(io_service_)
-    {
-    }
-
-    Socket::Socket(asio::io_service& io_service, const std::string& hostname, int port)
-    : Socket::Socket(io_service)
+    NetworkSocket::NetworkSocket(asio::io_service& io_service, const std::string& hostname,
+                                 int port)
+    : Socket(io_service), socket_(io_service_)
     {
         open(hostname, port);
     }
 
-    void Socket::read(std::byte* data, std::size_t bytes)
+    void NetworkSocket::read(std::byte* data, std::size_t bytes)
     {
         Log::trace() << "Reading " << bytes << " bytes from socket...";
 
@@ -40,7 +36,7 @@ namespace network
         }
     }
 
-    void Socket::write(const std::byte* data, std::size_t bytes)
+    void NetworkSocket::write(const std::byte* data, std::size_t bytes)
     {
         Log::trace() << "Writing " << bytes << " bytes onto socket...";
 
@@ -55,7 +51,7 @@ namespace network
         }
     }
 
-    std::string Socket::read_line(char delim)
+    std::string NetworkSocket::read_line(char delim)
     {
         Log::trace() << "Reading one line from buffer...";
 
@@ -69,7 +65,7 @@ namespace network
         return line;
     }
 
-    void Socket::open(const std::string& hostname, int port)
+    void NetworkSocket::open(const std::string& hostname, int port)
     {
         tcp::resolver resolver(io_service_);
         tcp::resolver::query query(tcp::v4(), hostname, std::to_string(port));
@@ -78,18 +74,18 @@ namespace network
         socket_.connect(*iterator);
     }
 
-    void Socket::close()
+    void NetworkSocket::close()
     {
         socket_.close();
         recv_buffer_.consume(recv_buffer_.size());
     }
 
-    bool Socket::is_open() const
+    bool NetworkSocket::is_open() const
     {
         return socket_.is_open();
     }
 
-    Socket::~Socket()
+    NetworkSocket::~NetworkSocket()
     {
         try
         {
@@ -102,6 +98,29 @@ namespace network
         {
             Log::error() << "Catched exception while closing socket: " << e.what();
         }
+    }
+
+    void NetworkSocket::read_binary_async(BinaryCallback callback)
+    {
+        assert(!binary_line_reader_);
+        assert(!line_reader_);
+        assert(asio_buffer().size() == 0);
+
+        binary_line_reader_ =
+            std::make_unique<AsyncBinaryLineReader<asio::ip::tcp::socket, BinaryCallback>>(
+                asio_socket(), callback);
+        binary_line_reader_->read();
+    }
+
+    void NetworkSocket::read_async(Callback callback)
+    {
+        assert(!binary_line_reader_);
+        assert(!line_reader_);
+        assert(asio_buffer().size() == 0);
+
+        line_reader_ = std::make_unique<AsyncLineReader<asio::ip::tcp::socket, Callback>>(
+            asio_socket(), callback);
+        line_reader_->read();
     }
 } // namespace network
 } // namespace lmgd
