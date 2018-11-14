@@ -27,7 +27,7 @@ namespace detail
 
             if (!r.tag().empty())
             {
-                s << r.tag() << "[";
+                s << r.tag() << "][";
             }
 
             s << r.severity() << "]: " << r.message() << '\n';
