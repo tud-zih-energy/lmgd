@@ -121,14 +121,14 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
         // activate scope mode, in scope mode we can read the gapless values
         connection_->check_command(":SENS:SWE:MOD SCOPE");
 
+        // Technically, this triggers the next measurement cycle.
+        // But no one knows, why and if we need it, but it is part of the example ¯\_(ツ)_/¯
+        connection_->check_command(":INIT:IMM");
+
         // set sampling rate
         connection_->check_command(
             ":SENS:GAPL:SRAT " +
             std::to_string(config.at("measurement").at("sampling_rate").get<int>()));
-
-        // Technically, this triggers the next measurement cycle.
-        // But no one knows, why and if we need it, but it is part of the example ¯\_(ツ)_/¯
-        connection_->check_command(":INIT:IMM");
 
         // read lenght of one gapless data block
         connection_->send_command(":FETC:SCOP:GAPL:TLEN?");
