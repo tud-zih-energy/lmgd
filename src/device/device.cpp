@@ -6,8 +6,6 @@
 #include <lmgd/except.hpp>
 #include <lmgd/log.hpp>
 
-#include <metricq/source_metric.hpp>
-
 #include <nitro/jiffy/jiffy.hpp>
 #include <nitro/lang/enumerate.hpp>
 

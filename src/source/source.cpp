@@ -36,7 +36,7 @@ Source::Source(const std::string& server, const std::string& token, bool drop_da
     connect(server);
 }
 
-void Source::source_config_callback(const nlohmann::json& config)
+void Source::on_source_config(const nlohmann::json& config)
 {
     Log::debug() << "Called source_config_callback()";
     std::lock_guard<std::mutex> lock(config_mutex_);
@@ -117,7 +117,7 @@ void Source::setup_device()
     });
 }
 
-void Source::ready_callback()
+void Source::on_source_ready()
 {
     Log::debug() << "Called ready_callback()";
     setup_device();
