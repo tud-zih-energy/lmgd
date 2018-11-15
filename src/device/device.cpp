@@ -118,6 +118,11 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
 
     if (mode_ == MeasurementMode::gapless)
     {
+        // set sampling rate
+        connection_->check_command(
+            ":SENS:GAPL:SRAT " +
+            std::to_string(config.at("measurement").at("sampling_rate").get<int>()));
+
         // activate scope mode, in scope mode we can read the gapless values
         connection_->check_command(":SENS:SWE:MOD SCOPE");
 
@@ -125,17 +130,14 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
         // But no one knows, why and if we need it, but it is part of the example ¯\_(ツ)_/¯
         connection_->check_command(":INIT:IMM");
 
-        // set sampling rate
-        connection_->check_command(
-            ":SENS:GAPL:SRAT " +
-            std::to_string(config.at("measurement").at("sampling_rate").get<int>()));
-
         // read lenght of one gapless data block
         connection_->send_command(":FETC:SCOP:GAPL:TLEN?");
         gap_length_ = std::stoi(connection_->read_ascii());
 
         // read actual sampling rate, might differ from the requested one in the config
-        connection_->send_command(":FETC:SCOP:GAPL:SRAT?");
+        // In contrast to the documentation, using the shorter but equal command
+        // ":FETC:SCOP:GAPL:SRAT?" yields a totally different result. LUL WUT ¯\_(ツ)_/¯
+        connection_->send_command(":FETC:SCOP:GAPL:SRATE?");
         sampling_rate_ = std::stof(connection_->read_ascii());
 
         Log::debug() << "gap_length: " << gap_length_ << ", sampling_rate: " << sampling_rate_;
