@@ -32,6 +32,10 @@ Source::Source(const std::string& server, const std::string& token, bool drop_da
         {
             device_->stop_recording();
         }
+        else
+        {
+            stop();
+        }
     });
 
     connect(server);
@@ -85,7 +89,7 @@ void Source::setup_device()
             if (stop_requested_)
             {
                 Log::info() << "Datastream from device ended. Stop.";
-                this->io_service.stop();
+                this->stop();
             }
             else
             {
