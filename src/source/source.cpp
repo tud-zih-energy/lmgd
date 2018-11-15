@@ -135,7 +135,6 @@ void Source::on_source_ready()
 {
     Log::debug() << "Called on_source_ready()";
     setup_device();
-    declare_metrics();
     Log::debug() << "Finished on_source_ready()";
 }
 
