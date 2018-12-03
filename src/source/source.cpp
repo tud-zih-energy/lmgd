@@ -68,7 +68,7 @@ void Source::setup_device()
     {
         auto& source_metric = (*this)[track.name()];
         Log::info() << "Add metric to recording: " << track.name();
-        source_metric.set_chunksize(0);
+        source_metric.chunk_size(0);
         // TODO set max_repeats dependent to sampling rate
         lmg_metrics_.emplace_back(track, source_metric);
     }
