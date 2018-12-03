@@ -117,7 +117,7 @@ void Source::setup_device()
                 for (auto entry : nitro::lang::enumerate(list))
                 {
                     auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
-                    metric.send(metricq::TimePoint(time_ns.time_since_epoch()), entry.value());
+                    metric.send({ metricq::TimePoint(time_ns.time_since_epoch()), entry.value() });
                 }
                 metric.flush();
             }
