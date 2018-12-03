@@ -38,7 +38,7 @@ private:
     asio::signal_set signals_;
     metricq::Timer timer_;
     std::unique_ptr<lmgd::device::Device> device_;
-    std::vector<Metric> metrics_;
+    std::vector<lmgd::source::Metric> lmg_metrics_;
     nlohmann::json config_;
     std::atomic<bool> stop_requested_ = false;
     bool drop_data_;

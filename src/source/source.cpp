@@ -70,7 +70,7 @@ void Source::setup_device()
         Log::info() << "Add metric to recording: " << track.name();
         source_metric.set_chunksize(0);
         // TODO set max_repeats dependent to sampling rate
-        metrics_.emplace_back(track, source_metric);
+        lmg_metrics_.emplace_back(track, source_metric);
     }
 
     device_->start_recording(lmgd::network::Connection::Mode::binary);
@@ -109,7 +109,7 @@ void Source::setup_device()
             auto cycle_start = data->read_date();
             auto cycle_duration = data->read_time();
 
-            for (auto& metric : this->metrics_)
+            for (auto& metric : this->lmg_metrics_)
             {
 
                 auto list = data->read_float_list();
@@ -117,7 +117,7 @@ void Source::setup_device()
                 for (auto entry : nitro::lang::enumerate(list))
                 {
                     auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
-                    metric.send({ metricq::TimePoint(time_ns.time_since_epoch()), entry.value() });
+                    metric.send(metricq::TimePoint(time_ns.time_since_epoch()), entry.value());
                 }
                 metric.flush();
             }
@@ -125,7 +125,7 @@ void Source::setup_device()
         else
         {
             auto now = metricq::Clock::now();
-            for (auto& metric : this->metrics_)
+            for (auto& metric : this->lmg_metrics_)
             {
                 metric.send(now, data->read_float());
                 metric.flush();
