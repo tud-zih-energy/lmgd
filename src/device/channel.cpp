@@ -130,9 +130,6 @@ Channel::Channel(Device& device, int id, const std::string& name, MetricSetType 
 
     connection_.check_command();
 
-    connection_.check_command(":INP:COUP" + std::to_string(id_) + " " +
-                              std::to_string(static_cast<int>(coupling_)));
-
     connection_.check_command(":SENS:CURR:RANG:AUTO" + std::to_string(id_) + " 0");
     connection_.check_command(":SENS:CURR:RANG" + std::to_string(id_) + " " +
                               std::to_string(current_range_));

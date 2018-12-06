@@ -95,6 +95,19 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
               " are configured.");
     }
 
+    // make sure we have at least one channel
+    if (channels_.empty())
+    {
+        raise("There are no channels in the config. Check your setup!");
+    }
+
+    // TODO while each channel can have a different coupling in the config, coupling is defined per
+    // group. Therefore, only the newer LMG670 can support mixed coupling setups. However, this is
+    // not supported right now. We only set the coupling here once to whatever the first channel has
+    // as coupling according to the config
+    connection_->check_command(":INP:COUP " +
+                               std::to_string(static_cast<int>(channels_.front().coupling())));
+
     {
         // These commands are only available on the newer 670 device, we send them to the older
         // devices to, but we will ignore any errors.
