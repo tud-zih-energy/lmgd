@@ -31,7 +31,7 @@ std::string Track::get_action_command(MeasurementMode mode) const
             command += ":POW:APP";
             break;
         case MetricType::reactive_power:
-            command += ":POW:ARE";
+            command += ":POW:REAC";
             break;
         case MetricType::phi:
             command += ":POW:PHAS";
