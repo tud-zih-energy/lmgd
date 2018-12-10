@@ -12,9 +12,19 @@ enum class ChannelSignalCoupling : int
 
 enum class MetricType : char
 {
+    phi,
     current = 'I',
-    power = 'P',
-    voltage = 'U'
+    current_min,
+    current_max,
+    current_crest,
+    power = 'P', // active power
+    apparent_power,
+    reactive_power,
+    voltage = 'U',
+    voltage_min,
+    voltage_max,
+    voltage_crest
+
 };
 
 enum class MetricBandwidth : int

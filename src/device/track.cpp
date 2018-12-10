@@ -25,13 +25,42 @@ std::string Track::get_action_command(MeasurementMode mode) const
         switch (type_)
         {
         case MetricType::power:
-            command += ":POW";
+            command += ":POW:ACT";
             break;
+        case MetricType::apparent_power:
+            command += ":POW:APP";
+            break;
+        case MetricType::reactive_power:
+            command += ":POW:ARE";
+            break;
+        case MetricType::phi:
+            command += ":POW:PHAS";
+            break;
+
         case MetricType::current:
-            command += ":CURR";
+            command += ":CURR:TRMS";
             break;
+        case MetricType::current_min:
+            command += ":CURR:MINP";
+            break;
+        case MetricType::current_max:
+            command += ":CURR:MAXP";
+            break;
+        case MetricType::current_crest:
+            command += ":CURR:CFAC";
+            break;
+
         case MetricType::voltage:
-            command += ":VOLT";
+            command += ":VOLT:TRMS";
+            break;
+        case MetricType::voltage_min:
+            command += ":VOLT:MINP";
+            break;
+        case MetricType::voltage_max:
+            command += ":VOLT:MAXP";
+            break;
+        case MetricType::voltage_crest:
+            command += ":VOLT:CFAC";
             break;
         }
 
@@ -67,14 +96,44 @@ std::string Track::name() const
 
     switch (type_)
     {
-    case MetricType::voltage:
-        result += ".voltage";
+    case MetricType::power:
+        result += ".power";
         break;
+    case MetricType::apparent_power:
+        result += ".power.apparent";
+        break;
+    case MetricType::reactive_power:
+        result += ".power.reactive";
+        break;
+
+    case MetricType::phi:
+        result += ".phi";
+        break;
+
     case MetricType::current:
         result += ".current";
         break;
-    case MetricType::power:
-        result += ".power";
+    case MetricType::current_min:
+        result += ".current.min";
+        break;
+    case MetricType::current_max:
+        result += ".current.max";
+        break;
+    case MetricType::current_crest:
+        result += ".current.crest";
+        break;
+
+    case MetricType::voltage:
+        result += ".voltage";
+        break;
+    case MetricType::voltage_min:
+        result += ".voltage.min";
+        break;
+    case MetricType::voltage_max:
+        result += ".voltage.max";
+        break;
+    case MetricType::voltage_crest:
+        result += ".voltage.crest";
         break;
     }
 

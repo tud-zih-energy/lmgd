@@ -48,17 +48,53 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, Meas
 
         MetricType metric_type;
 
-        if (metric == "power")
-        {
-            metric_type = MetricType::power;
-        }
-        else if (metric == "voltage")
+        if (metric == "voltage")
         {
             metric_type = MetricType::voltage;
+        }
+        else if (metric == "voltage_min")
+        {
+            metric_type = MetricType::voltage_min;
+        }
+        else if (metric == "voltage_max")
+        {
+            metric_type = MetricType::voltage_max;
+        }
+        else if (metric == "voltage_crest")
+        {
+            metric_type = MetricType::voltage_crest;
         }
         else if (metric == "current")
         {
             metric_type = MetricType::current;
+        }
+        else if (metric == "current_min")
+        {
+            metric_type = MetricType::current_min;
+        }
+        else if (metric == "current_max")
+        {
+            metric_type = MetricType::current_max;
+        }
+        else if (metric == "current_crest")
+        {
+            metric_type = MetricType::current_crest;
+        }
+        else if (metric == "power" || metric == "active_power")
+        {
+            metric_type = MetricType::power;
+        }
+        else if (metric == "apparent" || metric == "apparent_power")
+        {
+            metric_type = MetricType::apparent_power;
+        }
+        else if (metric == "reactive" || metric == "reactive_power")
+        {
+            metric_type = MetricType::reactive_power;
+        }
+        else if (metric == "phase" || metric == "phi")
+        {
+            metric_type = MetricType::phi;
         }
         else
         {
@@ -66,21 +102,30 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, Meas
                   config["name"].get<std::string>());
         }
 
+        // Gapless mode can only record power, current, and voltage
+        if (mode == MeasurementMode::gapless)
+        {
+            if (metric_type != MetricType::voltage && metric_type != MetricType::current &&
+                metric_type != MetricType::power)
+            {
+                raise("The metric '", metric_string,
+                      "' cannot be recorded in gapless mode for channel ",
+                      config["name"].get<std::string>());
+            }
+        }
+
         std::string bandwidth;
         std::getline(str, bandwidth);
 
         MetricBandwidth metric_bandwidth;
 
-        if (bandwidth == "")
+        if (mode == MeasurementMode::cycle)
         {
-            if (mode == MeasurementMode::gapless)
-            {
-                metric_bandwidth = MetricBandwidth::narrow;
-            }
-            else
-            {
-                metric_bandwidth = MetricBandwidth::cycle;
-            }
+            metric_bandwidth = MetricBandwidth::cycle;
+        }
+        else if (bandwidth == "")
+        {
+            metric_bandwidth = MetricBandwidth::narrow;
         }
         else if (bandwidth == "narrow")
         {
