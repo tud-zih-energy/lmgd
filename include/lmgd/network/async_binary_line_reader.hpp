@@ -23,9 +23,14 @@ struct Checker
     Checker(CB cb, size_t expected_bytes = 0) : cb(cb), bytes_expected(expected_bytes)
     {
     }
+
     void operator()(asio::error_code ec, size_t bytes_transferred)
     {
-        assert(!ec);
+        if (ec)
+        {
+            raise("Error while receiving binary line: ", ec.message());
+        }
+
         assert(!bytes_expected || bytes_expected == bytes_transferred);
         cb();
     }

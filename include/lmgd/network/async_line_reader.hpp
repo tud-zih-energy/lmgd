@@ -54,9 +54,12 @@ private:
             });
     }
 
-    void read_line_completed(const asio::error_code&, std::size_t bytes_transferred)
+    void read_line_completed(const asio::error_code& ec, std::size_t bytes_transferred)
     {
-        // TODO check error
+        if (ec)
+        {
+            raise("Error while reading line: ", ec.message());
+        }
 
         Log::trace() << "AsyncLineReader::read_line_completed()";
 
