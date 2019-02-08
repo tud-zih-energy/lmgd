@@ -38,6 +38,10 @@ target_link_libraries(lmgd
 target_include_directories(lmgd PUBLIC include)
 target_compile_options(lmgd PUBLIC $<$<CONFIG:Debug>:-Wall -pedantic -Wextra>)
 
+install(TARGETS lmgd
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+)
 
 add_executable(ilmg src/interactive.cpp src/network/serial_socket.cpp src/network/network_socket.cpp src/network/connection.cpp)
 target_compile_features(ilmg PUBLIC cxx_std_17)
