@@ -67,6 +67,7 @@ void Source::setup_device()
     for (auto& track : device_->get_tracks())
     {
         auto& source_metric = (*this)[track.name()];
+        source_metric.metadata.rate(device_->sampling_rate());
         Log::info() << "Add metric to recording: " << track.name();
         source_metric.chunk_size(0);
         // TODO set max_repeats dependent to sampling rate

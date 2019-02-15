@@ -33,6 +33,11 @@ public:
         return mode_;
     }
 
+    double sampling_rate() const
+    {
+        return sampling_rate_;
+    }
+
 private:
     void add_track(const Channel& channel, MetricType type, MetricBandwidth bandwidth);
     void check_serial_number(const nlohmann::json& config);
