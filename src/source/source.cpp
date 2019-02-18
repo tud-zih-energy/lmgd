@@ -143,4 +143,24 @@ void Source::on_source_ready()
     Log::debug() << "Finished on_source_ready()";
 }
 
+void Source::on_error(const std::string& message)
+{
+    Log::error() << "Connection to MetricQ failed: " << message;
+    if (device_)
+    {
+        device_->stop_recording();
+    }
+    signals_.cancel();
+}
+
+void Source::on_closed()
+{
+    Log::debug() << "Connection to MetricQ closed.";
+    if (device_)
+    {
+        device_->stop_recording();
+    }
+    signals_.cancel();
+}
+
 } // namespace lmgd::source

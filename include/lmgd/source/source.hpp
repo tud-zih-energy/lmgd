@@ -30,6 +30,10 @@ public:
     void on_source_config(const nlohmann::json& config) override;
     void on_source_ready() override;
 
+protected:
+    void on_error(const std::string& message) override;
+    void on_closed() override;
+
 private:
     void setup_device();
 
