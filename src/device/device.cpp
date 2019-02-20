@@ -8,10 +8,12 @@
 #include <nitro/jiffy/jiffy.hpp>
 #include <nitro/lang/enumerate.hpp>
 
-#include <cassert>
 #include <regex>
 #include <sstream>
 #include <string>
+
+#include <cassert>
+#include <cmath>
 
 namespace lmgd::device
 {
@@ -192,7 +194,7 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
         connection_->check_command(":SENS:SWE:TIME " + str.str());
         connection_->send_command(":SENS:SWE:TIME?");
         sampling_interval = std::stof(connection_->read_ascii());
-        sampling_rate_ = 1. / sampling_interval;
+        sampling_rate_ = std::round(1. / sampling_interval);
         Log::debug() << "Sampling rate: " << sampling_rate_;
     }
 } // namespace lmgd::device
