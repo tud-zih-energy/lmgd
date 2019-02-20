@@ -190,7 +190,10 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
         str << sampling_interval;
 
         connection_->check_command(":SENS:SWE:TIME " + str.str());
-        Log::debug() << "Sampling interval: " << sampling_interval;
+        connection_->send_command(":SENS:SWE:TIME");
+        sampling_interval = std::stof(connection_->read_ascii());
+        sampling_rate_ = 1. / sampling_interval;
+        Log::debug() << "Sampling rate: " << sampling_rate_;
     }
 } // namespace lmgd::device
 
