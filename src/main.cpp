@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 
         source.main_loop();
     }
-    catch (nitro::broken_options::parser_error& e)
+    catch (nitro::broken_options::parsing_error& e)
     {
         lmgd::Log::fatal() << e.what();
 
@@ -67,6 +67,7 @@ int main(int argc, char* argv[])
     catch (std::exception& e)
     {
         lmgd::Log::fatal() << e.what();
+        return 2;
     }
 
     return 0;
