@@ -237,6 +237,8 @@ void Device::start_recording(lmgd::network::Connection::Mode mode)
 void Device::stop_recording()
 {
     Log::info() << "Stop recording";
+    // *OPC? is added for the MeasurementMode::cycle - Otherwise there wouldn't be a final marker
+    // to detect the end of the datastream from the lmg device.
     connection_->send_command(":INIT:CONT OFF;*opc?");
     recording_ = false;
 }
