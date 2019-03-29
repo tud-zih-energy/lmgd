@@ -1,10 +1,6 @@
 #pragma once
 
-#include <nitro/log/attribute/jiffy.hpp>
-#include <nitro/log/attribute/severity.hpp>
-#include <nitro/log/filter/severity_filter.hpp>
-#include <nitro/log/log.hpp>
-#include <nitro/log/sink/stdout.hpp>
+#include <metricq/logger/nitro.hpp>
 
 namespace lmgd
 {
@@ -40,20 +36,6 @@ namespace detail
     using log_filter = nitro::log::filter::severity_filter<Record>;
 } // namespace detail
 
-using Log = nitro::log::logger<detail::record, detail::log_formater, nitro::log::sink::StdOut,
-                               detail::log_filter>;
-
-inline void set_severity_debug()
-{
-    nitro::log::filter::severity_filter<detail::record>::set_severity(
-        nitro::log::severity_level::debug);
-}
-inline void set_severity_info()
-{
-    nitro::log::filter::severity_filter<detail::record>::set_severity(
-        nitro::log::severity_level::info);
-}
-
-void initialize_logger();
+using Log = metricq::logger::nitro::Log;
 
 } // namespace lmgd

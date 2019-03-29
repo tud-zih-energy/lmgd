@@ -34,11 +34,11 @@ int main(int argc, char* argv[])
         {
             if (!options.given("debug"))
             {
-                lmgd::set_severity_info();
+                metricq::logger::nitro::set_severity(nitro::log::severity_level::info);
             }
             else
             {
-                lmgd::set_severity_debug();
+                metricq::logger::nitro::set_severity(nitro::log::severity_level::debug);
             }
         }
 
@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
             return 0;
         }
 
-        lmgd::initialize_logger();
+        metricq::logger::nitro::initialize();
 
         lmgd::source::Source source(options.get("server"), options.get("token"),
                                     options.given("drop-data"));
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     }
     catch (nitro::broken_options::parsing_error& e)
     {
-        lmgd::Log::fatal() << e.what();
+        std::cerr << e.what() << '\n';
 
         parser.usage();
 

@@ -1,4 +1,3 @@
-#include <lmgd/log.hpp>
 #include <lmgd/network/connection.hpp>
 
 #include <nitro/broken_options/parser.hpp>
@@ -8,33 +7,17 @@
 #include <iostream>
 #include <stdexcept>
 
-using lmgd::Log;
-
 int main(int argc, char* argv[])
 {
     nitro::broken_options::parser parser("ilmg");
 
     parser.option("port", "The resource to connect to.").short_name("p");
     parser.toggle("help").short_name("h");
-    parser.toggle("debug").short_name("d");
-    parser.toggle("trace").short_name("t");
     parser.toggle("serial", "To use serial or network connection").short_name("s");
 
     try
     {
         auto options = parser.parse(argc, argv);
-
-        if (!options.given("trace"))
-        {
-            if (!options.given("debug"))
-            {
-                lmgd::set_severity_info();
-            }
-            else
-            {
-                lmgd::set_severity_debug();
-            }
-        }
 
         if (options.given("help"))
         {
@@ -54,7 +37,7 @@ int main(int argc, char* argv[])
 
         lmgd::network::Connection socket(io_serivce, type, options.get("port"));
 
-        Log::info() << "Connected.";
+        std::cout << "Connected." << std::endl;
 
         std::string line;
 
@@ -68,12 +51,12 @@ int main(int argc, char* argv[])
             }
 
             socket.send_command(":SYST:ERR:ALL?");
-            Log::info() << "errors before: " << socket.read_ascii();
+            std::cerr << "errors before: " << socket.read_ascii() << '\n';
         }
     }
     catch (nitro::broken_options::parser_error& e)
     {
-        lmgd::Log::fatal() << e.what();
+        std::cerr << e.what() << '\n';
 
         parser.usage();
 
@@ -81,7 +64,7 @@ int main(int argc, char* argv[])
     }
     catch (std::exception& e)
     {
-        lmgd::Log::fatal() << e.what();
+        std::cerr << e.what() << '\n';
     }
 
     return 0;

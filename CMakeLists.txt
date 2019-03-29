@@ -30,10 +30,10 @@ target_compile_features(lmgd PUBLIC cxx_std_17)
 target_link_libraries(lmgd
     PRIVATE
         asio
-        Nitro::log
-        Nitro::jiffy
+        metricq::logger-nitro
         metricq::source
         json::json
+        Nitro::core
 )
 target_include_directories(lmgd PUBLIC include)
 target_compile_options(lmgd PUBLIC $<$<CONFIG:Debug>:-Wall -pedantic -Wextra>)
@@ -45,7 +45,7 @@ install(TARGETS lmgd
 
 add_executable(ilmg src/interactive.cpp src/network/serial_socket.cpp src/network/network_socket.cpp src/network/connection.cpp)
 target_compile_features(ilmg PUBLIC cxx_std_17)
-target_link_libraries(ilmg PRIVATE asio pthread Nitro::log Nitro::jiffy)
+target_link_libraries(ilmg PRIVATE asio pthread metricq::logger-nitro)
 target_include_directories(ilmg PUBLIC include)
 
 if(BUILD_SCOREP_PLUGIN)
