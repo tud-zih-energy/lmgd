@@ -4,6 +4,9 @@
 
 #include <asio/io_service.hpp>
 
+#include <date/date.h>
+#include <date/tz.h>
+
 #include <iostream>
 #include <stdexcept>
 
@@ -54,7 +57,7 @@ int main(int argc, char* argv[])
             std::cerr << "errors before: " << socket.read_ascii() << '\n';
         }
     }
-    catch (nitro::broken_options::parser_error& e)
+    catch (nitro::broken_options::parsing_error& e)
     {
         std::cerr << e.what() << '\n';
 

@@ -5,8 +5,10 @@
 #include <lmgd/except.hpp>
 #include <lmgd/log.hpp>
 
-#include <nitro/jiffy/jiffy.hpp>
 #include <nitro/lang/enumerate.hpp>
+
+#include <date/date.h>
+#include <date/tz.h>
 
 #include <regex>
 #include <sstream>
@@ -65,8 +67,9 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
         connection_->send_command(":SYST:DATE?");
         auto old_device_time = connection_->read_ascii();
 
-        auto now = nitro::jiffy::Jiffy();
-        connection_->check_command(":SYST:DATE " + now.format("%Y:%m:%dD%H:%M:%S.%f"));
+        auto now = date::make_zoned(date::current_zone(), date::floor<std::chrono::nanoseconds>(
+                                                              std::chrono::system_clock::now()));
+        connection_->check_command(":SYST:DATE " + date::format("%Y:%m:%dD%H:%M:%S", now));
 
         connection_->send_command("SYST:DATE?");
         auto new_device_time = connection_->read_ascii();
