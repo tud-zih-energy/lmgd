@@ -46,6 +46,7 @@ private:
     nlohmann::json config_;
     std::atomic<bool> stop_requested_ = false;
     bool drop_data_;
+    int chunk_size_;
 };
 
 } // namespace lmgd::source

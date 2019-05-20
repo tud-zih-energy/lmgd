@@ -63,13 +63,14 @@ void Source::setup_device()
     std::lock_guard<std::mutex> lock(config_mutex_);
 
     device_ = std::make_unique<lmgd::device::Device>(io_service, config_);
+    chunk_size_ = config_["chunk_size"].get<int>();
 
     for (auto& track : device_->get_tracks())
     {
         auto& source_metric = (*this)[track.name()];
         source_metric.metadata.rate(device_->sampling_rate());
         Log::info() << "Add metric to recording: " << track.name();
-        source_metric.chunk_size(0);
+        source_metric.chunk_size(chunk_size_);
         // TODO set max_repeats dependent to sampling rate
         lmg_metrics_.emplace_back(track, source_metric);
     }
@@ -120,7 +121,10 @@ void Source::setup_device()
                     auto time_ns = cycle_start + entry.index() * cycle_duration / list.size();
                     metric.send(metricq::TimePoint(time_ns.time_since_epoch()), entry.value());
                 }
-                metric.flush();
+                if (chunk_size_ == 0)
+                {
+                    metric.flush();
+                }
             }
         }
         else
@@ -129,7 +133,10 @@ void Source::setup_device()
             for (auto& metric : this->lmg_metrics_)
             {
                 metric.send(now, data->read_float());
-                metric.flush();
+                if (chunk_size_ == 0)
+                {
+                    metric.flush();
+                }
             }
         }
         return network::CallbackResult::repeat;
