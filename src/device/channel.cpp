@@ -125,7 +125,7 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, Meas
         }
         else if (bandwidth == "")
         {
-            metric_bandwidth = MetricBandwidth::narrow;
+            metric_bandwidth = MetricBandwidth::wide;
         }
         else if (bandwidth == "narrow")
         {

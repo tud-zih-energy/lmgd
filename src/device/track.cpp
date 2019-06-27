@@ -137,7 +137,7 @@ std::string Track::name() const
         break;
     }
 
-    return result + (bandwidth_ == MetricBandwidth::wide ? ".wide" : "");
+    return result + (bandwidth_ == MetricBandwidth::narrow ? ".narrow" : "");
 }
 
 } // namespace lmgd::device
