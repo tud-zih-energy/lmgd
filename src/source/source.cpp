@@ -108,7 +108,7 @@ void Source::setup_device()
 
         if (device_->measurement_mode() == device::MeasurementMode::gapless)
         {
-            const auto base_cycle_start = data->read_date()
+            const auto base_cycle_start = data->read_date();
             const auto cycle_duration = data->read_time();
 
             for (auto& metric : this->lmg_metrics_)
