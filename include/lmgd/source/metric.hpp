@@ -103,7 +103,10 @@ public:
 
     time::TimePoint cycle_start(time::TimePoint cycle_time)
     {
-        assert(current_cycle_time_ != time::TimePoint());
+        if (current_cycle_time_ == time::TimePoint())
+        {
+            return cycle_time;
+        }
         return current_cycle_time_;
     }
 
