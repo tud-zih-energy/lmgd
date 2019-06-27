@@ -2,9 +2,12 @@
 
 #include <lmgd/device/track.hpp>
 #include <lmgd/device/types.hpp>
+#include <lmgd/time.hpp>
 
 #include <metricq/metric.hpp>
 #include <metricq/source.hpp>
+
+#include <cassert>
 
 namespace lmgd::source
 {
@@ -98,6 +101,17 @@ public:
         metric_.flush();
     }
 
+    time::TimePoint cycle_start(time::TimePoint cycle_time)
+    {
+        assert(current_cycle_time_ != time::TimePoint());
+        return current_cycle_time_;
+    }
+
+    void cycle_end(time::TimePoint cycle_time)
+    {
+        current_cycle_time_ = cycle_time;
+    }
+
 private:
     metricq::Metric<metricq::Source>& metric_;
 
@@ -106,5 +120,7 @@ private:
     int max_repeats_;
     float last_value_;
     int repeat_ = 0;
+
+    time::TimePoint current_cycle_time_;
 };
 } // namespace lmgd::source
