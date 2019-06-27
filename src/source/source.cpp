@@ -108,11 +108,12 @@ void Source::setup_device()
 
         if (device_->measurement_mode() == device::MeasurementMode::gapless)
         {
+            const auto base_cycle_start = data->read_date()
             const auto cycle_duration = data->read_time();
 
             for (auto& metric : this->lmg_metrics_)
             {
-                const auto cycle_start = metric.cycle_start(data->read_date());
+                const auto cycle_start = metric.cycle_start(base_cycle_start);
                 const auto list = data->read_float_list();
 
                 for (auto entry : nitro::lang::enumerate(list))
