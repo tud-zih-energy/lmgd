@@ -138,7 +138,7 @@ void Source::setup_device()
                         .count(),
                 });
 
-                offset_metric.local_offset.send({
+                offset_metric.chunk_offset.send({
                     metricq::TimePoint(cycle_start.time_since_epoch()),
                     std::chrono::duration_cast<std::chrono::duration<double>>(
                         base_cycle_start - cycle_start)
