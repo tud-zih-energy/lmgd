@@ -7,13 +7,16 @@
 
 #include <nitro/lang/enumerate.hpp>
 
+#include <chrono>
 #include <memory>
 
 namespace lmgd::source
 {
 
 Source::Source(const std::string& server, const std::string& token, bool drop_data)
-: metricq::Source(token), signals_(io_service, SIGINT, SIGTERM), timer_(io_service),
+: metricq::Source(token),
+  signals_(io_service, SIGINT, SIGTERM),
+  timer_(io_service),
   drop_data_(drop_data)
 {
     Log::debug() << "Called lmgd::Source::Source()";
@@ -73,6 +76,14 @@ void Source::setup_device()
         source_metric.chunk_size(chunk_size_);
         // TODO set max_repeats dependent to sampling rate
         lmg_metrics_.emplace_back(track, source_metric);
+        if (device_->measurement_mode() == device::MeasurementMode::gapless)
+        {
+            offset_metrics_.emplace_back(*this, track.name());
+            offset_metrics_.back().local_offset.metadata.rate(
+                device_->sampling_rate() / device_->gap_length());
+            offset_metrics_.back().chunk_offset.metadata.rate(
+                device_->sampling_rate() / device_->gap_length());
+        }
     }
 
     device_->start_recording(lmgd::network::Connection::Mode::binary);
@@ -111,9 +122,29 @@ void Source::setup_device()
             const auto base_cycle_start = data->read_date();
             const auto cycle_duration = data->read_time();
 
+            auto it = this->offset_metrics_.begin();
+
             for (auto& metric : this->lmg_metrics_)
             {
                 const auto cycle_start = metric.cycle_start(base_cycle_start);
+
+                assert(it != this->offset_metrics_.end());
+                auto& offset_metric = *it++;
+
+                offset_metric.local_offset.send({
+                    metricq::TimePoint(cycle_start.time_since_epoch()),
+                    std::chrono::duration_cast<std::chrono::duration<double>>(
+                        metricq::Clock::now().time_since_epoch() - cycle_start.time_since_epoch())
+                        .count(),
+                });
+
+                offset_metric.local_offset.send({
+                    metricq::TimePoint(cycle_start.time_since_epoch()),
+                    std::chrono::duration_cast<std::chrono::duration<double>>(
+                        base_cycle_start - cycle_start)
+                        .count(),
+                });
+
                 const auto list = data->read_float_list();
 
                 for (auto entry : nitro::lang::enumerate(list))

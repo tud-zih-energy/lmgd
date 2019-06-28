@@ -14,8 +14,10 @@ namespace lmgd::source
 class Metric
 {
 public:
-    Metric(const device::Track& track, metricq::Metric<metricq::Source>& metric,
-           int max_repeats = 8)
+    Metric(
+        const device::Track& track,
+        metricq::Metric<metricq::Source>& metric,
+        int max_repeats = 8)
     : metric_(metric), bandwidth_(track.bandwidth()), max_repeats_(max_repeats)
     {
         metric.metadata(metricq::Metadata::Scope::last);

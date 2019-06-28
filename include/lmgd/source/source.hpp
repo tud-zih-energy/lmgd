@@ -21,6 +21,18 @@ class Device;
 namespace lmgd::source
 {
 
+struct OffsetMetrics
+{
+    OffsetMetrics(metricq::Source& source, const std::string& base_metric)
+    : local_offset(source[base_metric + ".local_offset"]),
+      chunk_offset(source[base_metric + ".chunk_offset"])
+    {
+    }
+
+    metricq::Metric<metricq::Source>& local_offset;
+    metricq::Metric<metricq::Source>& chunk_offset;
+};
+
 class Source : public metricq::Source
 {
 public:
@@ -43,6 +55,7 @@ private:
     metricq::Timer timer_;
     std::unique_ptr<lmgd::device::Device> device_;
     std::vector<lmgd::source::Metric> lmg_metrics_;
+    std::vector<OffsetMetrics> offset_metrics_;
     nlohmann::json config_;
     std::atomic<bool> stop_requested_ = false;
     bool drop_data_;
