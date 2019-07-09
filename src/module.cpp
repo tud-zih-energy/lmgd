@@ -48,8 +48,8 @@ public:
         connection_->send_command("GROUP 6");
         for (const auto& track : nitro::lang::enumerate(tracks_))
         {
-            connection_->send_command("GLCTRAC " + std::to_string(track.index()) + ", \"" +
-                                      track.value() + "\"");
+            connection_->send_command(
+                "GLCTRAC " + std::to_string(track.index()) + ", \"" + track.value() + "\"");
         }
         connection_->send_command("GLCSR " + scorep::environment_variable::get("RATE", "10000"));
         connection_->send_command("CYCLMOD SCOPE");

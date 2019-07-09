@@ -25,13 +25,15 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
     if (config.at("measurement").at("device").at("connection").get<std::string>() == "serial")
     {
         connection_ = std::make_unique<network::Connection>(
-            io_service_, network::Connection::Type::serial,
+            io_service_,
+            network::Connection::Type::serial,
             config.at("measurement").at("device").at("port").get<std::string>());
     }
     else if (config.at("measurement").at("device").at("connection").get<std::string>() == "socket")
     {
         connection_ = std::make_unique<network::Connection>(
-            io_service_, network::Connection::Type::socket,
+            io_service_,
+            network::Connection::Type::socket,
             config.at("measurement").at("device").at("address").get<std::string>());
     }
     else
@@ -49,8 +51,9 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
     }
     else
     {
-        raise("Requested unknown measurement mode: " +
-              config.at("measurement").at("mode").get<std::string>());
+        raise(
+            "Requested unknown measurement mode: " +
+            config.at("measurement").at("mode").get<std::string>());
     }
 
     connection_->send_command(":SYST:ERR:ALL?");
@@ -67,8 +70,9 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
         connection_->send_command(":SYST:DATE?");
         auto old_device_time = connection_->read_ascii();
 
-        auto now = date::make_zoned(date::current_zone(), date::floor<std::chrono::nanoseconds>(
-                                                              std::chrono::system_clock::now()));
+        auto now = date::make_zoned(
+            date::current_zone(),
+            date::floor<std::chrono::nanoseconds>(std::chrono::system_clock::now()));
         connection_->check_command(":SYST:DATE " + date::format("%Y:%m:%dD%H:%M:%S", now));
 
         connection_->send_command("SYST:DATE?");
@@ -96,8 +100,12 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
     {
         // Thomas, DO NOT comment that out, because it will mess up grouping. Fix the fucking
         // config! lmgd::device::Track also assumes exactly one group. Keep it alone.
-        raise("This device has exactly ", num_channels, " channels, but ", channels_.size(),
-              " are configured.");
+        raise(
+            "This device has exactly ",
+            num_channels,
+            " channels, but ",
+            channels_.size(),
+            " are configured.");
     }
 
     // make sure we have at least one channel
@@ -110,8 +118,8 @@ Device::Device(asio::io_service& io_service, const nlohmann::json& config) : io_
     // group. Therefore, only the newer LMG670 can support mixed coupling setups. However, this is
     // not supported right now. We only set the coupling here once to whatever the first channel has
     // as coupling according to the config
-    connection_->check_command(":INP:COUP " +
-                               std::to_string(static_cast<int>(channels_.front().coupling())));
+    connection_->check_command(
+        ":INP:COUP " + std::to_string(static_cast<int>(channels_.front().coupling())));
 
     {
         // These commands are only available on the newer 670 device, we send them to the older
@@ -299,9 +307,12 @@ void Device::check_serial_number(const nlohmann::json& config)
 
     if (config.at("measurement").at("device").at("serial").get<std::string>() != match[3])
     {
-        raise("I'm connected to a different device, check your damn config. (device: ", match[3],
-              "; config: ", config.at("measurement").at("device").at("serial").get<std::string>(),
-              ")");
+        raise(
+            "I'm connected to a different device, check your damn config. (device: ",
+            match[3],
+            "; config: ",
+            config.at("measurement").at("device").at("serial").get<std::string>(),
+            ")");
     }
 }
 

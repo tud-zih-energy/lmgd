@@ -48,7 +48,9 @@ private:
         Log::trace() << "AsyncLineReader::read_line()";
 
         asio::async_read_until(
-            socket, buffer_, '\n',
+            socket,
+            buffer_,
+            '\n',
             [this](const asio::error_code& error, std::size_t bytes_transferred) {
                 this->read_line_completed(error, bytes_transferred);
             });
@@ -63,9 +65,9 @@ private:
 
         Log::trace() << "AsyncLineReader::read_line_completed()";
 
-        data = std::make_shared<std::string>(asio::buffers_begin(buffer_.data()),
-                                             asio::buffers_begin(buffer_.data()) +
-                                                 bytes_transferred - 1);
+        data = std::make_shared<std::string>(
+            asio::buffers_begin(buffer_.data()),
+            asio::buffers_begin(buffer_.data()) + bytes_transferred - 1);
         buffer_.consume(bytes_transferred);
 
         Log::trace() << "Read line of " << bytes_transferred << " bytes length";

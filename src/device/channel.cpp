@@ -23,8 +23,11 @@ ChannelSignalCoupling Channel::parse_coupling(const nlohmann::json& json_config)
         raise("GND coupling not implemented yet.");
     }
 
-    raise("Unknown coupling requested: ", config,
-          " for channel: ", json_config["name"].get<std::string>());
+    raise(
+        "Unknown coupling requested: ",
+        config,
+        " for channel: ",
+        json_config["name"].get<std::string>());
 }
 
 Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, MeasurementMode mode)
@@ -98,8 +101,11 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, Meas
         }
         else
         {
-            raise("Got unknown metric type '", metric_string, "' for channel ",
-                  config["name"].get<std::string>());
+            raise(
+                "Got unknown metric type '",
+                metric_string,
+                "' for channel ",
+                config["name"].get<std::string>());
         }
 
         // Gapless mode can only record power, current, and voltage
@@ -108,9 +114,11 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, Meas
             if (metric_type != MetricType::voltage && metric_type != MetricType::current &&
                 metric_type != MetricType::power)
             {
-                raise("The metric '", metric_string,
-                      "' cannot be recorded in gapless mode for channel ",
-                      config["name"].get<std::string>());
+                raise(
+                    "The metric '",
+                    metric_string,
+                    "' cannot be recorded in gapless mode for channel ",
+                    config["name"].get<std::string>());
             }
         }
 
@@ -137,8 +145,11 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, Meas
         }
         else
         {
-            raise("Got unknown bandwidth '", metric_string, "' for channel ",
-                  config["name"].get<std::string>());
+            raise(
+                "Got unknown bandwidth '",
+                metric_string,
+                "' for channel ",
+                config["name"].get<std::string>());
         }
 
         auto res = metrics.emplace(metric_type, metric_bandwidth);
@@ -152,10 +163,21 @@ Channel::MetricSetType Channel::parse_metrics(const nlohmann::json& config, Meas
     return metrics;
 }
 
-Channel::Channel(Device& device, int id, const std::string& name, MetricSetType metrics,
-                 ChannelSignalCoupling coupling, float current_range, float voltage_range)
-: connection_(*(device.connection_)), id_(id), name_(name), metrics_(metrics), coupling_(coupling),
-  current_range_(current_range), voltage_range_(voltage_range)
+Channel::Channel(
+    Device& device,
+    int id,
+    const std::string& name,
+    MetricSetType metrics,
+    ChannelSignalCoupling coupling,
+    float current_range,
+    float voltage_range)
+: connection_(*(device.connection_)),
+  id_(id),
+  name_(name),
+  metrics_(metrics),
+  coupling_(coupling),
+  current_range_(current_range),
+  voltage_range_(voltage_range)
 {
     // setup channel on lmg device
 
@@ -176,12 +198,12 @@ Channel::Channel(Device& device, int id, const std::string& name, MetricSetType 
     connection_.check_command();
 
     connection_.check_command(":SENS:CURR:RANG:AUTO" + std::to_string(id_) + " 0");
-    connection_.check_command(":SENS:CURR:RANG" + std::to_string(id_) + " " +
-                              std::to_string(current_range_));
+    connection_.check_command(
+        ":SENS:CURR:RANG" + std::to_string(id_) + " " + std::to_string(current_range_));
 
     connection_.check_command(":SENS:VOLT:RANG:AUTO" + std::to_string(id_) + " 0");
-    connection_.check_command(":SENS:VOLT:RANG" + std::to_string(id_) + " " +
-                              std::to_string(voltage_range_));
+    connection_.check_command(
+        ":SENS:VOLT:RANG" + std::to_string(id_) + " " + std::to_string(voltage_range_));
 
     for (auto metric : metrics_)
     {
@@ -190,9 +212,14 @@ Channel::Channel(Device& device, int id, const std::string& name, MetricSetType 
 }
 
 Channel::Channel(device::Device& device, int id, const nlohmann::json& config)
-: Channel(device, id, config["name"].get<std::string>(),
-          parse_metrics(config, device.measurement_mode()), parse_coupling(config),
-          config["current_range"].get<float>(), config["voltage_range"].get<double>())
+: Channel(
+      device,
+      id,
+      config["name"].get<std::string>(),
+      parse_metrics(config, device.measurement_mode()),
+      parse_coupling(config),
+      config["current_range"].get<float>(),
+      config["voltage_range"].get<double>())
 {
 }
 

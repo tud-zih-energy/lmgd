@@ -62,8 +62,11 @@ private:
     {
         Log::trace() << "AsyncBinaryLineReader::read_marker()";
 
-        asio::async_read(socket, asio::buffer(&marker, 1), asio::transfer_exactly(1),
-                         Checker([this]() { this->read_chunk(); }, 1));
+        asio::async_read(
+            socket,
+            asio::buffer(&marker, 1),
+            asio::transfer_exactly(1),
+            Checker([this]() { this->read_chunk(); }, 1));
     }
 
     void read_chunk()
@@ -91,8 +94,11 @@ private:
     {
         Log::trace() << "AsyncBinaryLineReader::read_size_size()";
 
-        asio::async_read(socket, asio::buffer(&size_size_char, 1), asio::transfer_exactly(1),
-                         Checker([this]() { this->read_size(); }, 1));
+        asio::async_read(
+            socket,
+            asio::buffer(&size_size_char, 1),
+            asio::transfer_exactly(1),
+            Checker([this]() { this->read_size(); }, 1));
     }
 
     void read_size()
@@ -102,8 +108,11 @@ private:
         Log::trace() << "AsyncBinaryLineReader::read_size(): " << size_size;
 
         size_str.resize(size_size);
-        asio::async_read(socket, asio::buffer(size_str), asio::transfer_exactly(size_size),
-                         Checker([this]() { this->read_data(); }, size_size));
+        asio::async_read(
+            socket,
+            asio::buffer(size_str),
+            asio::transfer_exactly(size_size),
+            Checker([this]() { this->read_data(); }, size_size));
     }
 
     void read_data()
@@ -112,8 +121,11 @@ private:
 
         auto data_size = std::stoll(size_str);
         auto buf = data->append(data_size);
-        asio::async_read(socket, asio::buffer(buf, data_size), asio::transfer_exactly(data_size),
-                         Checker([this]() { this->read_marker(); }, data_size));
+        asio::async_read(
+            socket,
+            asio::buffer(buf, data_size),
+            asio::transfer_exactly(data_size),
+            Checker([this]() { this->read_marker(); }, data_size));
     }
 
 private:

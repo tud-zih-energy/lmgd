@@ -19,8 +19,8 @@ int main(int argc, char* argv[])
     parser.option("server", "The metricq management server to connect to.")
         .default_value("amqp://localhost")
         .short_name("s");
-    parser.option("token",
-                  "The token used for source authentification against the metricq manager.");
+    parser.option(
+        "token", "The token used for source authentification against the metricq manager.");
     parser.toggle("help").short_name("h");
     parser.toggle("debug").short_name("d");
     parser.toggle("trace").short_name("t");
@@ -51,8 +51,8 @@ int main(int argc, char* argv[])
 
         metricq::logger::nitro::initialize();
 
-        lmgd::source::Source source(options.get("server"), options.get("token"),
-                                    options.given("drop-data"));
+        lmgd::source::Source source(
+            options.get("server"), options.get("token"), options.given("drop-data"));
 
         source.main_loop();
     }

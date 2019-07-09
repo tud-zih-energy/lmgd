@@ -29,8 +29,14 @@ private:
 
     MetricSetType parse_metrics(const nlohmann::json& config, MeasurementMode mode);
 
-    Channel(Device& device, int id, const std::string& name, MetricSetType metrics,
-            ChannelSignalCoupling coupling, float current_range, float voltage_range);
+    Channel(
+        Device& device,
+        int id,
+        const std::string& name,
+        MetricSetType metrics,
+        ChannelSignalCoupling coupling,
+        float current_range,
+        float voltage_range);
 
 public:
     Channel(device::Device& device, int id, const nlohmann::json& config);

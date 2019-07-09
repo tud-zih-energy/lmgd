@@ -54,8 +54,9 @@ namespace network
         Log::trace() << "Reading one line from buffer...";
 
         std::size_t bytes_transferred = asio::read_until(socket_, recv_buffer_, delim);
-        std::string line(asio::buffers_begin(recv_buffer_.data()),
-                         asio::buffers_begin(recv_buffer_.data()) + bytes_transferred - 1);
+        std::string line(
+            asio::buffers_begin(recv_buffer_.data()),
+            asio::buffers_begin(recv_buffer_.data()) + bytes_transferred - 1);
 
         Log::trace() << "Read line of " << bytes_transferred << " bytes length";
 
