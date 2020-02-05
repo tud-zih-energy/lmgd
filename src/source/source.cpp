@@ -70,6 +70,9 @@ void Source::setup_device()
 {
     std::lock_guard<std::mutex> lock(config_mutex_);
 
+    // if the device pointer is already set, then this is a reconfigure
+    auto is_reconfigure = static_cast<bool>(device_);
+
     // When handling a reconfigure, before creating a new device, we need to make sure, the old one
     // is gone. So yes, this explicit reset is intentional.
     device_.reset(nullptr);
@@ -187,8 +190,10 @@ void Source::setup_device()
         return network::CallbackResult::repeat;
     });
 
-    // technically this is not required on the first setup, but during an reconfigure
-    declare_metrics();
+    if (is_reconfigure)
+    {
+        declare_metrics();
+    }
 }
 
 void Source::on_source_ready()
