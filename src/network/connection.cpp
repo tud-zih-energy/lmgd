@@ -75,6 +75,7 @@ void Connection::reset()
         assert(socket_);
 
         dynamic_cast<lmgd::network::SerialSocket*>(socket_.get())->asio_socket().send_break();
+        dynamic_cast<lmgd::network::SerialSocket*>(socket_.get())->asio_socket().flush();
     }
     else
     {
