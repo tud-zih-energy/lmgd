@@ -41,6 +41,11 @@ Source::Source(const std::string& server, const std::string& token, bool drop_da
         }
     });
 
+    register_management_callback("config", [this](auto config) {
+        this->on_source_config(config);
+        return nlohmann::json::object();
+    });
+
     connect(server);
 }
 
