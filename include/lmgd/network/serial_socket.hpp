@@ -24,6 +24,8 @@ namespace network
             return socket_;
         }
 
+        void flush();
+
     public:
         std::string read_line(char delim = '\n') override;
         void read(std::byte* data, std::size_t bytes) override;

@@ -8,6 +8,12 @@
 #include <asio/read_until.hpp>
 #include <asio/write.hpp>
 
+extern "C"
+{
+#include <termios.h>
+#include <unistd.h>
+}
+
 namespace lmgd
 {
 namespace network
@@ -68,6 +74,13 @@ namespace network
     {
         socket_.open(port);
         socket_.set_option(baud_);
+
+        flush();
+    }
+
+    void SerialSocket::flush()
+    {
+        tcflush(socket_.lowest_layer().native_handle(), TCIOFLUSH);
     }
 
     void SerialSocket::close()
