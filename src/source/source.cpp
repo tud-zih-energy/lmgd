@@ -76,6 +76,11 @@ void Source::setup_device()
     device_ = std::make_unique<lmgd::device::Device>(io_service, config_);
     chunk_size_ = config_["chunk_size"].get<int>();
 
+    // resetting internal state for reconfigure
+    lmg_metrics_.clear();
+    offset_metrics_.clear();
+    clear_metrics();
+
     for (auto& track : device_->get_tracks())
     {
         auto& source_metric = (*this)[track.name()];
@@ -181,6 +186,9 @@ void Source::setup_device()
         }
         return network::CallbackResult::repeat;
     });
+
+    // technically this is not required on the first setup, but during an reconfigure
+    declare_metrics();
 }
 
 void Source::on_source_ready()
