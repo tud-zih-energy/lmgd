@@ -70,6 +70,9 @@ void Source::setup_device()
 {
     std::lock_guard<std::mutex> lock(config_mutex_);
 
+    // When handling a reconfigure, before creating a new device, we need to make sure, the old one
+    // is gone. So yes, this explicit reset is intentional.
+    device_.reset(nullptr);
     device_ = std::make_unique<lmgd::device::Device>(io_service, config_);
     chunk_size_ = config_["chunk_size"].get<int>();
 
