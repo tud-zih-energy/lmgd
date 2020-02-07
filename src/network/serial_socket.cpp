@@ -74,8 +74,6 @@ namespace network
     {
         socket_.open(port);
         socket_.set_option(baud_);
-
-        flush();
     }
 
     void SerialSocket::flush()
