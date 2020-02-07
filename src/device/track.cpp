@@ -100,10 +100,10 @@ std::string Track::name() const
         result += ".power";
         break;
     case MetricType::apparent_power:
-        result += ".power.apparent";
+        result += ".apparent_power";
         break;
     case MetricType::reactive_power:
-        result += ".power.reactive";
+        result += ".reactive_power";
         break;
 
     case MetricType::phi:
@@ -120,7 +120,7 @@ std::string Track::name() const
         result += ".current.max";
         break;
     case MetricType::current_crest:
-        result += ".current.crest";
+        result += ".current_crest";
         break;
 
     case MetricType::voltage:
@@ -133,7 +133,7 @@ std::string Track::name() const
         result += ".voltage.max";
         break;
     case MetricType::voltage_crest:
-        result += ".voltage.crest";
+        result += ".voltage_crest";
         break;
     }
 
