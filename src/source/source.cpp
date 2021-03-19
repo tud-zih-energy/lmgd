@@ -99,8 +99,20 @@ void Source::setup_device()
 
     device_->start_recording(lmgd::network::Connection::Mode::binary);
 
+    timer_.start(
+        [this](auto) {
+            Log::fatal() << "LMG failed to send values within the last 10 seconds. "
+                            "Assuming the connection died.";
+            throw std::runtime_error("Connection to LMG timed out");
+            return metricq::Timer::TimerResult::cancel;
+        },
+        std::chrono::seconds(10));
+
     device_->fetch_binary_data([this](auto& data) {
         Log::trace() << "Called completion_callback: " << data->size();
+
+        timer_.restart();
+
         if (data->size() == 1)
         {
             char c = data->read_char();
@@ -113,11 +125,13 @@ void Source::setup_device()
             if (stop_requested_)
             {
                 Log::info() << "Datastream from device ended. Stop.";
+                this->timer_.cancel();
                 this->stop();
             }
             else
             {
                 Log::info() << "Datastream from device ended unexpectedly. Restarting...";
+                this->timer_.cancel();
                 this->setup_device();
             }
             return network::CallbackResult::cancel;
