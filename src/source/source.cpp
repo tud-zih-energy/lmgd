@@ -89,6 +89,8 @@ void Source::setup_device()
         lmg_metrics_.emplace_back(track, source_metric);
         if (device_->measurement_mode() == device::MeasurementMode::gapless)
         {
+            source_metric.metadata.chunk_size(device_->gap_length());
+
             offset_metrics_.emplace_back(*this, track.name());
             offset_metrics_.back().local_offset.metadata.rate(
                 device_->sampling_rate() / device_->gap_length());
