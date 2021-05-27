@@ -1,6 +1,6 @@
 #include <lmgd/network/connection.hpp>
 
-#include <nitro/broken_options/parser.hpp>
+#include <nitro/options/parser.hpp>
 
 #include <asio/io_service.hpp>
 
@@ -12,7 +12,7 @@
 
 int main(int argc, char* argv[])
 {
-    nitro::broken_options::parser parser("ilmg");
+    nitro::options::parser parser("ilmg");
 
     parser.option("port", "The resource to connect to.").short_name("p");
     parser.toggle("help").short_name("h");
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
             std::cerr << "errors before: " << socket.read_ascii() << '\n';
         }
     }
-    catch (nitro::broken_options::parsing_error& e)
+    catch (nitro::options::parsing_error& e)
     {
         std::cerr << e.what() << '\n';
 

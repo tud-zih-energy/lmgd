@@ -2,7 +2,7 @@
 
 #include <lmgd/log.hpp>
 
-#include <nitro/broken_options/parser.hpp>
+#include <nitro/options/parser.hpp>
 #include <nitro/lang/enumerate.hpp>
 
 #include <iostream>
@@ -14,7 +14,7 @@ using lmgd::Log;
 
 int main(int argc, char* argv[])
 {
-    nitro::broken_options::parser parser("lmgd");
+    nitro::options::parser parser("lmgd");
 
     parser.option("server", "The metricq management server to connect to.")
         .default_value("amqp://localhost")
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 
         source.main_loop();
     }
-    catch (nitro::broken_options::parsing_error& e)
+    catch (nitro::options::parsing_error& e)
     {
         std::cerr << e.what() << '\n';
 
